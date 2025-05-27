@@ -1,0 +1,23 @@
+// Main SCSS file that imports all modules
+// Import Sass built-in modules
+@use 'sass:math';
+@use 'sass:color';
+
+// Import utilities first
+@use './utils/variables' as vars;
+@use './utils/mixins' as mix;
+@use './utils/reset';
+@use './utils/typography';
+@use './utils/animations';
+@use './utils/utilities';
+
+// Import layout components
+@use './layout/layout';
+
+// Import UI components
+@use './components/buttons';
+@use './components/forms';
+@use './components/cards';
+@use './components/terminal';
+@use './components/notifications';
+@use './components/navigation'; 

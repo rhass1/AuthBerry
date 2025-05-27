@@ -1,0 +1,88 @@
+// Color Palette
+$primary-green: #00FF9C;
+$primary-blue: #0088FF;
+$primary-purple: #8C52FF;
+$accent-teal: #00E6CC;
+$background: #0A0E14;
+$card-background: rgba(16, 23, 35, 0.7);
+$input-background: transparent;
+
+// Additional Colors for UI
+$success: #4CAF50;
+$warning: #FFC107;
+$error: #FF5252;
+$info: $primary-blue;
+
+// Typography
+$font-heading: 'VT323', monospace;
+$font-subheading: 'Caudex', serif;
+$font-body: 'Poppins', sans-serif;
+
+// Font Sizes
+$font-size-base: 16px;
+$font-size-sm: 0.875rem;    // 14px
+$font-size-md: 1rem;        // 16px
+$font-size-lg: 1.25rem;     // 20px
+$font-size-xl: 1.5rem;      // 24px
+$font-size-2xl: 2rem;       // 32px
+$font-size-3xl: 2.5rem;     // 40px
+$font-size-4xl: 3rem;       // 48px
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// Spacing
+$spacing-base: 8px;
+$spacing-xs: $spacing-base * 0.5;    // 4px
+$spacing-sm: $spacing-base;          // 8px
+$spacing-md: $spacing-base * 2;      // 16px
+$spacing-lg: $spacing-base * 3;      // 24px
+$spacing-xl: $spacing-base * 4;      // 32px
+$spacing-2xl: $spacing-base * 5;     // 40px
+$spacing-3xl: $spacing-base * 6;     // 48px
+
+// Breakpoints
+$breakpoint-xs: 0;           // Extra small devices
+$breakpoint-sm: 640px;       // Small devices (phones)
+$breakpoint-md: 768px;       // Medium devices (tablets)
+$breakpoint-lg: 1024px;      // Large devices (desktops)
+$breakpoint-xl: 1280px;      // Extra large devices
+
+// Z-index layers
+$z-index-base: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Border radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-pill: 50rem;
+
+// Shadows
+$shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.15);
+$shadow-md: 0 4px 10px rgba(0, 0, 0, 0.25);
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.35);
+$glow-green: 0 0 15px rgba($primary-green, 0.6);
+$glow-blue: 0 0 15px rgba($primary-blue, 0.6);
+$glow-purple: 0 0 15px rgba($primary-purple, 0.6);
+$glow-teal: 0 0 15px rgba($accent-teal, 0.6);
+
+// Glass morphism
+$glass-background: rgba(16, 23, 35, 0.7);
+$glass-border: 1px solid rgba(255, 255, 255, 0.1);
+$glass-blur: blur(10px);
+
+// Transitions
+$transition-fast: 150ms ease;
+$transition-base: 250ms ease;
+$transition-slow: 400ms ease; 

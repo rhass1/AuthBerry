@@ -1,0 +1,30 @@
+{
+  "name": "auth-berry-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "axios": "1.8.4",
+    "pinia": "3.0.2",
+    "socket.io-client": "4.8.1",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0",
+    "vuetify": "3.8.1",
+    "dayjs": "1.11.13"
+  },
+  "devDependencies": {
+    "@mdi/font": "7.4.47",
+    "@vitejs/plugin-vue": "5.2.3",
+    "eslint": "8.57.0",
+    "eslint-plugin-vue": "9.19.2",
+    "vue-eslint-parser": "9.3.2",
+    "sass": "1.86.3",
+    "vite": "6.2.6",
+    "vue-advanced-cropper": "2.8.9"
+  }
+} 

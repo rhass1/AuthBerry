@@ -1,0 +1,350 @@
+@use '../utils/variables' as vars;
+@use '../utils/mixins' as mix;
+@use 'sass:color';
+
+/* Button Styles */
+
+/* Base Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: vars.$spacing-sm vars.$spacing-md;
+  font-family: vars.$font-body;
+  font-size: vars.$font-size-md;
+  font-weight: vars.$font-weight-medium;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  border-radius: vars.$border-radius-md;
+  transition: all vars.$transition-base;
+  position: relative;
+  overflow: hidden;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:disabled,
+  &.disabled {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+  
+  /* Icon in button */
+  .icon {
+    display: inline-flex;
+    margin-right: vars.$spacing-xs;
+    
+    &.icon-right {
+      margin-right: 0;
+      margin-left: vars.$spacing-xs;
+    }
+  }
+}
+
+/* Button Sizes */
+.btn-xs {
+  padding: 2px vars.$spacing-xs;
+  font-size: vars.$font-size-sm;
+  border-radius: vars.$border-radius-sm;
+}
+
+.btn-sm {
+  padding: 4px vars.$spacing-sm;
+  font-size: vars.$font-size-sm;
+}
+
+.btn-lg {
+  padding: vars.$spacing-sm vars.$spacing-lg;
+  font-size: vars.$font-size-lg;
+}
+
+.btn-xl {
+  padding: vars.$spacing-md vars.$spacing-xl;
+  font-size: vars.$font-size-xl;
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+/* Button Variants */
+.btn-primary {
+  background-color: vars.$primary-green;
+  color: color.adjust(vars.$background, $lightness: -10%);
+  
+  &:hover, &:focus {
+    background-color: color.adjust(vars.$primary-green, $lightness: -10%);
+    box-shadow: vars.$glow-green;
+  }
+  
+  &.btn-outline {
+    background-color: transparent;
+    border-color: vars.$primary-green;
+    color: vars.$primary-green;
+    
+    &:hover, &:focus {
+      background-color: rgba(vars.$primary-green, 0.1);
+      box-shadow: vars.$glow-green;
+    }
+  }
+}
+
+.btn-secondary {
+  background-color: vars.$primary-blue;
+  color: white;
+  
+  &:hover, &:focus {
+    background-color: color.adjust(vars.$primary-blue, $lightness: -10%);
+    box-shadow: vars.$glow-blue;
+  }
+  
+  &.btn-outline {
+    background-color: transparent;
+    border-color: vars.$primary-blue;
+    color: vars.$primary-blue;
+    
+    &:hover, &:focus {
+      background-color: rgba(vars.$primary-blue, 0.1);
+      box-shadow: vars.$glow-blue;
+    }
+  }
+}
+
+.btn-accent {
+  background-color: vars.$primary-purple;
+  color: white;
+  
+  &:hover, &:focus {
+    background-color: color.adjust(vars.$primary-purple, $lightness: -10%);
+    box-shadow: vars.$glow-purple;
+  }
+  
+  &.btn-outline {
+    background-color: transparent;
+    border-color: vars.$primary-purple;
+    color: vars.$primary-purple;
+    
+    &:hover, &:focus {
+      background-color: rgba(vars.$primary-purple, 0.1);
+      box-shadow: vars.$glow-purple;
+    }
+  }
+}
+
+.btn-teal {
+  background-color: vars.$accent-teal;
+  color: color.adjust(vars.$background, $lightness: -10%);
+  
+  &:hover, &:focus {
+    background-color: color.adjust(vars.$accent-teal, $lightness: -10%);
+    box-shadow: vars.$glow-teal;
+  }
+  
+  &.btn-outline {
+    background-color: transparent;
+    border-color: vars.$accent-teal;
+    color: vars.$accent-teal;
+    
+    &:hover, &:focus {
+      background-color: rgba(vars.$accent-teal, 0.1);
+      box-shadow: vars.$glow-teal;
+    }
+  }
+}
+
+.btn-dark {
+  background-color: rgba(16, 23, 35, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  &:hover, &:focus {
+    background-color: rgba(16, 23, 35, 1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: white;
+  
+  &:hover, &:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Cyberpunk/Hacker Style Buttons */
+.btn-cyber {
+  @include mix.retro-button;
+  background-color: transparent;
+  color: vars.$primary-green;
+  border: 1px solid vars.$primary-green;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: vars.$font-heading;
+  
+  &:hover, &:focus {
+    color: color.adjust(vars.$background, $lightness: -10%);
+    background-color: vars.$primary-green;
+    box-shadow: vars.$glow-green;
+  }
+  
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(vars.$primary-green, 0.2),
+      transparent
+    );
+    transition: all 650ms;
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+.btn-glitch {
+  background-color: transparent;
+  border: 1px solid vars.$primary-blue;
+  color: vars.$primary-blue;
+  font-family: vars.$font-heading;
+  position: relative;
+  
+  &::before, &::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &::before {
+    color: vars.$primary-purple;
+    z-index: -1;
+    clip-path: inset(0 0 0 0);
+  }
+  
+  &::after {
+    color: vars.$primary-green;
+    z-index: -2;
+    clip-path: inset(0 0 0 0);
+  }
+  
+  &:hover::before {
+    animation: glitch 300ms ease infinite;
+  }
+  
+  &:hover::after {
+    animation: glitch 300ms ease infinite reverse;
+  }
+}
+
+.btn-terminal {
+  @include mix.terminal-text;
+  background-color: transparent;
+  border: 1px dashed vars.$primary-green;
+  font-family: vars.$font-heading;
+  padding: vars.$spacing-xs vars.$spacing-sm;
+  
+  &::before {
+    content: '> ';
+  }
+  
+  &:hover, &:focus {
+    background-color: rgba(vars.$primary-green, 0.1);
+    border-style: solid;
+  }
+}
+
+/* Icon Button */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.btn-sm {
+    width: 32px;
+    height: 32px;
+  }
+  
+  &.btn-lg {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* Button Group */
+.btn-group {
+  display: inline-flex;
+  position: relative;
+  
+  .btn {
+    position: relative;
+    flex: 1 1 auto;
+    
+    &:not(:first-child) {
+      margin-left: -1px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    &:not(:last-child) {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+}
+
+/* Floating Action Button */
+.btn-floating {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: vars.$spacing-lg;
+  right: vars.$spacing-lg;
+  box-shadow: vars.$shadow-md;
+  z-index: vars.$z-index-fixed;
+  
+  &.btn-sm {
+    width: 40px;
+    height: 40px;
+  }
+  
+  &.btn-top-right {
+    top: vars.$spacing-lg;
+    bottom: auto;
+  }
+  
+  &.btn-bottom-left {
+    left: vars.$spacing-lg;
+    right: auto;
+  }
+} 

@@ -1,0 +1,65 @@
+# Dockerfile for auth_berry_app (Flask)
+FROM python:3.13.1-bookworm
+
+ARG AUTH_BERRY_UID
+ARG AUTH_BERRY_GID
+ARG TSS_UID
+ARG TSS_GID
+
+WORKDIR /app
+
+# Install system packages including TPM libs
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cargo \
+    pkg-config \
+    libmariadb-dev \
+    libtss2-dev \
+    tpm2-tools \
+    libmagic1 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Copy requirements.txt and install
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Now that tpm2-pytss is installed (which will have created the tss user),
+# ensure the TSS user/group matches the host system
+RUN if getent group tss > /dev/null; then \
+        # If tss group exists, modify its GID to match host
+        groupmod -g ${TSS_GID} tss || echo "Failed to modify tss group GID, likely already correct"; \
+    else \
+        # If tss group doesn't exist, create it with host's GID
+        groupadd -g ${TSS_GID} tss; \
+    fi && \
+    if id tss > /dev/null 2>&1; then \
+        # If tss user exists, modify its UID to match host
+        usermod -u ${TSS_UID} -g ${TSS_GID} tss || echo "Failed to modify tss user UID, likely already correct"; \
+    else \
+        # If tss user doesn't exist, create it with host's UID
+        useradd -u ${TSS_UID} -g ${TSS_GID} -s /bin/false tss; \
+    fi
+
+# Create a non-root user (auth-berry-user) with UID/GID from build args
+RUN groupadd --gid ${AUTH_BERRY_GID} auth-berry-user && \
+    useradd --uid ${AUTH_BERRY_UID} --gid ${AUTH_BERRY_GID} --create-home auth-berry-user && \
+    usermod -aG tss auth-berry-user
+
+# Create necessary directories
+RUN mkdir -p /app/file_uploads /app/logs /app/secrets && \
+    chmod -R 750 /app/file_uploads /app/logs /app/secrets && \
+    chown -R auth-berry-user:auth-berry-user /app/file_uploads /app/logs /app/secrets
+
+# Copy entrypoint.sh
+COPY docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Expose port 1337
+EXPOSE 1337
+
+# Switch to non-root auth-berry-user
+USER auth-berry-user
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

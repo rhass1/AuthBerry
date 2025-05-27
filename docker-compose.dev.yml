@@ -1,0 +1,115 @@
+services:
+  auth_berry_mariadb:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile.dev
+      args:
+        AUTH_BERRY_UID: ${AUTH_BERRY_UID}
+        AUTH_BERRY_GID: ${AUTH_BERRY_GID}
+        TSS_UID: ${TSS_UID}
+        TSS_GID: ${TSS_GID}
+    container_name: auth_berry_mariadb
+    restart: always
+    environment:
+      MARIADB_DATABASE: auth_berry
+      MARIADB_USER: auth-berry-user
+      MARIADB_PASSWORD_FILE: /secrets/mariadb_user
+      MARIADB_ROOT_PASSWORD_FILE: /secrets/mariadb_root
+    volumes:
+      - auth_berry_mariadb:/var/lib/mysql
+      - ./secrets:/secrets:ro
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    devices:
+      - "${TPM_DEVICES:-/dev/tpmrm0}:/dev/tpmrm0"
+    networks:
+      - auth_berry_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1.5G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+  auth_berry_flask:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile.dev
+      args:
+        AUTH_BERRY_UID: ${AUTH_BERRY_UID}
+        AUTH_BERRY_GID: ${AUTH_BERRY_GID}
+        TSS_UID: ${TSS_UID}
+        TSS_GID: ${TSS_GID}
+    container_name: auth_berry_flask
+    restart: on-failure
+    depends_on:
+      auth_berry_mariadb:
+        condition: service_healthy
+    environment:
+      FLASK_APP: run.py
+      FLASK_DEBUG: '1'
+      APP_SECRET_KEY_FILE: /secrets/app_secret
+      JWT_SECRET_FILE: /secrets/jwt_secret
+      ENCRYPTION_KEY_FILE: /secrets/encryption_key
+      DB_TYPE: mariadb
+      DB_CONNECTOR: pymysql
+      DB_HOST: auth_berry_mariadb
+      DB_PORT: '3306'
+      DB_USER: auth-berry-user
+      DB_PASSWORD_FILE: /secrets/mariadb_user
+      DB_NAME: auth_berry
+      FILE_UPLOAD_PATH: /app/file_uploads
+    ports:
+      - "${FLASK_PORT:-49152}:1337"
+    volumes:
+      - .:/app
+      - ./secrets:/secrets:ro
+      - ./file_uploads:/app/file_uploads
+    devices:
+      - "${TPM_DEVICES:-/dev/tpmrm0}:/dev/tpmrm0"
+    networks:
+      - auth_berry_network
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+  auth_berry_vue:
+    image: node:23
+    container_name: auth_berry_vue
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    ports:
+      - "${VUE_PORT:-49153}:3000"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: /api
+    networks:
+      - auth_berry_network
+    depends_on:
+      - auth_berry_flask
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+networks:
+  auth_berry_network:
+    driver: bridge
+volumes:
+  auth_berry_mariadb: {}
+  auth_berry_files: {}

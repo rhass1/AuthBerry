@@ -1,0 +1,488 @@
+@use '../utils/variables' as vars;
+@use '../utils/mixins' as mix;
+@use 'sass:color';
+
+/* Form Styles */
+
+/* Form Group */
+.form-group {
+  margin-bottom: vars.$spacing-md;
+  
+  &.inline {
+    display: flex;
+    align-items: center;
+    
+    .form-label {
+      margin-right: vars.$spacing-md;
+      margin-bottom: 0;
+      flex: 0 0 auto;
+    }
+    
+    .form-control {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+/* Form Label */
+.form-label {
+  display: block;
+  margin-bottom: vars.$spacing-xs;
+  font-weight: vars.$font-weight-medium;
+  color: white;
+  
+  &.required::after {
+    content: '*';
+    color: vars.$primary-green;
+    margin-left: 4px;
+  }
+}
+
+/* Base form control styling */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: vars.$spacing-sm vars.$spacing-md;
+  font-family: vars.$font-body;
+  font-size: vars.$font-size-md;
+  color: white;
+  background-color: transparent;
+  background-clip: padding-box;
+  border: 1px solid rgba(vars.$primary-blue, 0.3);
+  border-radius: vars.$border-radius-md;
+  transition: all vars.$transition-base;
+  
+  &:focus {
+    outline: none;
+    border-color: vars.$primary-blue;
+    box-shadow: 0 0 0 3px rgba(vars.$primary-blue, 0.25);
+  }
+  
+  &.is-invalid {
+    border-color: vars.$error;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(vars.$error, 0.25);
+    }
+  }
+  
+  &.is-valid {
+    border-color: vars.$success;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(vars.$success, 0.25);
+    }
+  }
+  
+  &:disabled,
+  &[readonly] {
+    background-color: rgba(0, 0, 0, 0.1);
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Terminal Style Input */
+.terminal-input {
+  @include mix.terminal-text;
+  background-color: transparent;
+  border: 1px solid vars.$primary-green;
+  font-family: vars.$font-heading;
+  padding: vars.$spacing-sm vars.$spacing-md;
+  
+  &::before {
+    content: '> ';
+  }
+  
+  &:focus {
+    box-shadow: vars.$glow-green;
+  }
+  
+  &::placeholder {
+    color: rgba(vars.$primary-green, 0.5);
+  }
+}
+
+/* Glass Input */
+.glass-input {
+  @include mix.glass-morphism;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: transparent !important;
+  
+  &:focus {
+    backdrop-filter: blur(10px);
+    background-color: transparent !important;
+    border-color: rgba(vars.$primary-blue, 0.4);
+  }
+}
+
+/* Textarea */
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Select */
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right vars.$spacing-sm center;
+  background-size: 20px;
+  padding-right: vars.$spacing-xl;
+  
+  &::-ms-expand {
+    display: none;
+  }
+  
+  option {
+    background-color: vars.$background;
+    color: white;
+  }
+}
+
+/* Custom Select */
+.custom-select {
+  position: relative;
+  
+  select {
+    width: 100%;
+    cursor: pointer;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: vars.$spacing-md;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid vars.$primary-blue;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+}
+
+/* Checkbox and Radio */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: vars.$spacing-sm;
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  
+  input[type="checkbox"],
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    
+    &:checked ~ .checkmark {
+      border-color: vars.$primary-green;
+      background-color: rgba(vars.$primary-green, 0.1);
+      
+      &::after {
+        opacity: 1;
+      }
+    }
+    
+    &:focus ~ .checkmark {
+      box-shadow: 0 0 0 3px rgba(vars.$primary-green, 0.2);
+    }
+  }
+  
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all vars.$transition-base;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      opacity: 0;
+      transition: opacity vars.$transition-base;
+    }
+  }
+  
+  &.checkbox {
+    .checkmark {
+      border-radius: vars.$border-radius-sm;
+      
+      &::after {
+        left: 7px;
+        top: 3px;
+        width: 5px;
+        height: 10px;
+        border: solid vars.$primary-green;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+  }
+  
+  &.radio {
+    .checkmark {
+      border-radius: 50%;
+      
+      &::after {
+        top: 5px;
+        left: 5px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: vars.$primary-green;
+      }
+    }
+  }
+}
+
+/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-bottom: 0;
+  
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    
+    &:checked + .slider {
+      background-color: rgba(vars.$primary-green, 0.3);
+      border-color: vars.$primary-green;
+      
+      &::before {
+        transform: translateX(26px);
+        background-color: vars.$primary-green;
+      }
+    }
+    
+    &:focus + .slider {
+      box-shadow: 0 0 0 3px rgba(vars.$primary-green, 0.2);
+    }
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: vars.$transition-base;
+    border-radius: 34px;
+    
+    &::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 2px;
+      background-color: white;
+      transition: vars.$transition-base;
+      border-radius: 50%;
+    }
+  }
+}
+
+/* Input with Icon */
+.input-icon {
+  position: relative;
+  
+  .form-control {
+    padding-left: vars.$spacing-xl;
+  }
+  
+  .icon {
+    position: absolute;
+    top: 50%;
+    left: vars.$spacing-sm;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    
+    &.icon-right {
+      left: auto;
+      right: vars.$spacing-sm;
+    }
+  }
+}
+
+/* Input Group */
+.input-group {
+  display: flex;
+  position: relative;
+  align-items: stretch;
+  width: 100%;
+  
+  .form-control {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+    
+    &:not(:first-child) {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    &:not(:last-child) {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+  
+  .input-group-prepend,
+  .input-group-append {
+    display: flex;
+    
+    .input-group-text {
+      display: flex;
+      align-items: center;
+      padding: vars.$spacing-sm vars.$spacing-md;
+      background-color: transparent;
+      border: 1px solid rgba(vars.$primary-blue, 0.3);
+      color: white;
+      white-space: nowrap;
+    }
+    
+    .btn {
+      position: relative;
+      z-index: 2;
+    }
+  }
+  
+  .input-group-prepend {
+    margin-right: -1px;
+    
+    .input-group-text {
+      border-top-left-radius: vars.$border-radius-md;
+      border-bottom-left-radius: vars.$border-radius-md;
+    }
+  }
+  
+  .input-group-append {
+    margin-left: -1px;
+    
+    .input-group-text {
+      border-top-right-radius: vars.$border-radius-md;
+      border-bottom-right-radius: vars.$border-radius-md;
+    }
+  }
+}
+
+/* Form Validation */
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: vars.$spacing-xs;
+  font-size: vars.$font-size-sm;
+  color: vars.$error;
+}
+
+.valid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: vars.$spacing-xs;
+  font-size: vars.$font-size-sm;
+  color: vars.$success;
+}
+
+/* Form Help Text */
+.form-text {
+  display: block;
+  margin-top: vars.$spacing-xs;
+  font-size: vars.$font-size-sm;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Vuetify specific overrides */
+.v-field,
+.v-field__field,
+.v-field__input,
+.v-field__overlay,
+.v-field--variant-outlined,
+.v-field--variant-filled,
+.v-field--active,
+.v-field--focused,
+.v-input, 
+.v-input__slot, 
+.v-input__control,
+.v-text-field,
+.v-textarea,
+.v-select,
+.v-file-input,
+.v-combobox {
+  background-color: transparent !important;
+}
+
+.v-field__overlay {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.v-field--variant-outlined .v-field__outline {
+  --v-field-border-opacity: 0.1;
+}
+
+/* Fix specifically for active/focused states */
+.v-field--focused .v-field__overlay,
+.v-field--active .v-field__overlay {
+  background-color: transparent !important;
+  opacity: 0 !important;
+  display: none !important;
+}
+
+/* Additional overrides for any other potential background elements */
+.v-field__loader,
+.v-field__clearable,
+.v-field__append-inner,
+.v-field__prepend-inner,
+.v-input__details,
+.v-label,
+.v-selection-control,
+.v-selection-control__wrapper,
+.v-selection-control__input,
+.v-input__slot,
+.v-input__append,
+.v-input__prepend,
+.v-input__control > .v-input__slot,
+.v-text-field__slot {
+  background-color: transparent !important;
+}
+
+/* Remove any potential box-shadows causing the effect */
+.v-field,
+.v-field--focused,
+.v-field--active {
+  box-shadow: none !important;
+}
+
+/* Override form-field classes across the entire app */
+.form-field,
+.form-field:focus-within,
+.form-field:hover,
+.form-field:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+} 

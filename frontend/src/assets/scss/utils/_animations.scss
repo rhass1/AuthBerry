@@ -1,0 +1,404 @@
+@use 'variables' as vars;
+
+/* Animations and Effects */
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn vars.$transition-base forwards;
+}
+
+/* Fade Out Animation */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-out {
+  animation: fadeOut vars.$transition-base forwards;
+}
+
+/* Slide In From Top */
+@keyframes slideInTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-top {
+  animation: slideInTop vars.$transition-base forwards;
+}
+
+/* Slide In From Bottom */
+@keyframes slideInBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-bottom {
+  animation: slideInBottom vars.$transition-base forwards;
+}
+
+/* Slide In From Left */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft vars.$transition-base forwards;
+}
+
+/* Slide In From Right */
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight vars.$transition-base forwards;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-in {
+  animation: scaleIn vars.$transition-base forwards;
+}
+
+/* Glitch Effect */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.glitch {
+  position: relative;
+  
+  &:hover {
+    animation: glitch 200ms linear infinite;
+    
+    &::before,
+    &::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    &::before {
+      left: 2px;
+      text-shadow: -2px 0 vars.$primary-green;
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim 5s infinite linear alternate-reverse;
+    }
+    
+    &::after {
+      left: -2px;
+      text-shadow: -2px 0 vars.$primary-purple;
+      clip: rect(44px, 450px, 56px, 0);
+      animation: glitch-anim2 5s infinite linear alternate-reverse;
+    }
+  }
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(28px, 9999px, 20px, 0);
+  }
+  5% {
+    clip: rect(47px, 9999px, 29px, 0);
+  }
+  10% {
+    clip: rect(64px, 9999px, 59px, 0);
+  }
+  15% {
+    clip: rect(91px, 9999px, 24px, 0);
+  }
+  20% {
+    clip: rect(5px, 9999px, 53px, 0);
+  }
+  25% {
+    clip: rect(60px, 9999px, 93px, 0);
+  }
+  30% {
+    clip: rect(89px, 9999px, 76px, 0);
+  }
+  35% {
+    clip: rect(84px, 9999px, 59px, 0);
+  }
+  40% {
+    clip: rect(37px, 9999px, 21px, 0);
+  }
+  45% {
+    clip: rect(32px, 9999px, 16px, 0);
+  }
+  50% {
+    clip: rect(18px, 9999px, 13px, 0);
+  }
+  55% {
+    clip: rect(14px, 9999px, 88px, 0);
+  }
+  60% {
+    clip: rect(61px, 9999px, 8px, 0);
+  }
+  65% {
+    clip: rect(79px, 9999px, 71px, 0);
+  }
+  70% {
+    clip: rect(96px, 9999px, 35px, 0);
+  }
+  75% {
+    clip: rect(1px, 9999px, 14px, 0);
+  }
+  80% {
+    clip: rect(41px, 9999px, 11px, 0);
+  }
+  85% {
+    clip: rect(38px, 9999px, 11px, 0);
+  }
+  90% {
+    clip: rect(56px, 9999px, 70px, 0);
+  }
+  95% {
+    clip: rect(33px, 9999px, 24px, 0);
+  }
+  100% {
+    clip: rect(8px, 9999px, 90px, 0);
+  }
+}
+
+@keyframes glitch-anim2 {
+  0% {
+    clip: rect(89px, 9999px, 45px, 0);
+  }
+  5% {
+    clip: rect(34px, 9999px, 98px, 0);
+  }
+  10% {
+    clip: rect(95px, 9999px, 75px, 0);
+  }
+  15% {
+    clip: rect(92px, 9999px, 78px, 0);
+  }
+  20% {
+    clip: rect(67px, 9999px, 87px, 0);
+  }
+  25% {
+    clip: rect(27px, 9999px, 22px, 0);
+  }
+  30% {
+    clip: rect(42px, 9999px, 11px, 0);
+  }
+  35% {
+    clip: rect(35px, 9999px, 64px, 0);
+  }
+  40% {
+    clip: rect(1px, 9999px, 43px, 0);
+  }
+  45% {
+    clip: rect(20px, 9999px, 55px, 0);
+  }
+  50% {
+    clip: rect(32px, 9999px, 98px, 0);
+  }
+  55% {
+    clip: rect(42px, 9999px, 87px, 0);
+  }
+  60% {
+    clip: rect(65px, 9999px, 91px, 0);
+  }
+  65% {
+    clip: rect(54px, 9999px, 47px, 0);
+  }
+  70% {
+    clip: rect(36px, 9999px, 64px, 0);
+  }
+  75% {
+    clip: rect(13px, 9999px, 71px, 0);
+  }
+  80% {
+    clip: rect(12px, 9999px, 15px, 0);
+  }
+  85% {
+    clip: rect(31px, 9999px, 66px, 0);
+  }
+  90% {
+    clip: rect(9px, 9999px, 25px, 0);
+  }
+  95% {
+    clip: rect(4px, 9999px, 35px, 0);
+  }
+  100% {
+    clip: rect(100px, 9999px, 100px, 0);
+  }
+}
+
+/* Typing Animation */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: vars.$primary-green }
+}
+
+.typing-animation {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid vars.$primary-green;
+  animation: 
+    typing 3.5s steps(40, end),
+    blink-caret 0.75s step-end infinite;
+}
+
+/* Neon Pulse Animation */
+@keyframes neonPulse {
+  0% {
+    text-shadow: 0 0 5px rgba(vars.$primary-green, 0.2),
+                0 0 10px rgba(vars.$primary-green, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(vars.$primary-green, 0.4),
+                0 0 20px rgba(vars.$primary-green, 0.4),
+                0 0 30px rgba(vars.$primary-green, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(vars.$primary-green, 0.2),
+                0 0 10px rgba(vars.$primary-green, 0.2);
+  }
+}
+
+.neon-pulse {
+  animation: neonPulse 2s infinite;
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(vars.$primary-green, 0.2);
+  border-top-color: vars.$primary-green;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Loading dots */
+@keyframes loadingDots {
+  0%, 20% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+  80%, 100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  
+  &::after {
+    content: '.';
+    animation: loadingDots 1.5s infinite 0.2s;
+  }
+  
+  &::before {
+    content: '.';
+    animation: loadingDots 1.5s infinite 0.3s;
+  }
+}
+
+/* Vue.js Transitions */
+// Fade transition
+.fade-enter-active, .fade-leave-active {
+  transition: opacity vars.$transition-base;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+// Slide transition
+.slide-enter-active, .slide-leave-active {
+  transition: all vars.$transition-base;
+}
+.slide-enter-from, .slide-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+
+// Scale transition
+.scale-enter-active, .scale-leave-active {
+  transition: all vars.$transition-base;
+}
+.scale-enter-from, .scale-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+} 

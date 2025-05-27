@@ -1,0 +1,24 @@
+argon2-cffi == 23.1.0  # Secure Password Hashing
+cryptography == 44.0.2  # Provides cryptographic recipes and privmitives. Used for Fernet key.
+mariadb == 1.1.12  # Python MariaDB extension
+PyMySQL == 1.1.1  # Pure Python MySQL driver
+SQLAlchemy == 2.0.40  # Interact with SQL through Python
+gunicorn == 23.0.0  # Python WSGI HTTP Server for UNIX
+gevent == 25.5.1  # Async networking library for Gunicorn worker class
+Flask == 3.1.0  # Simple Python Web Framework
+Flask-SQLAlchemy == 3.1.1  # Flask extension for SQLAlchemy
+flask-jwt-extended == 4.7.1  # Flask support for JWT with superpowers.
+Flask-Migrate == 4.1.0  # SQLAlchemy database migrations for Flask applications using Alembic.
+Flask-Session == 0.8.0  # Server-side session support for Flask
+Flask-Limiter == 3.12  # Rate limiting for Flask applications
+Flask-Principal==0.4.0  # Role-based access control
+tpm2-pytss == 2.3.0  # Utility methods for wrapping keys to TPM 2.0 data structures for importation into the TPM.
+ruamel.yaml == 0.18.10  # YAML parser/emitter
+flask-cors == 5.0.1  # Cross-Origin Resource Sharing (CORS) for Flask
+flask-socketio == 5.5.1  # Socket.IO integration for Flask applications
+Flask-Security == 5.6.1  # Flask-Security is an opinionated Flask extension that adds a few security utilities to your application.
+setuptools>=78.1.0  # Setuptools is a collection of extensions to the distutils that allow you to build and distribute Python packages, including the Python Package Index (PyPI).
+pillow == 11.2.1  # Python Imaging Library - Required for profile photo processing
+python-magic == 0.4.27  # File type detection using libmagic
+werkzeug == 3.1.3  # Required for secure filename handling
+dotenv == 0.9.9  # Load environment variables from .env file

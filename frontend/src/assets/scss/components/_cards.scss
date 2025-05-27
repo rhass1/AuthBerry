@@ -1,0 +1,339 @@
+@use '../utils/variables' as vars;
+@use '../utils/mixins' as mix;
+@use 'sass:math';
+@use 'sass:color';
+
+/* Card Styles */
+
+/* Base Card Style */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: vars.$card-background;
+  background-clip: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: vars.$border-radius-md;
+  overflow: hidden;
+  transition: all vars.$transition-base;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: vars.$shadow-md;
+  }
+  
+  &-body {
+    flex: 1 1 auto;
+    padding: vars.$spacing-md;
+  }
+  
+  &-title {
+    margin-bottom: vars.$spacing-sm;
+    font-family: vars.$font-heading;
+    font-size: vars.$font-size-xl;
+    color: vars.$primary-green;
+  }
+  
+  &-subtitle {
+    margin-top: -(vars.$spacing-xs);
+    margin-bottom: vars.$spacing-sm;
+    font-family: vars.$font-subheading;
+    font-size: vars.$font-size-sm;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  &-text {
+    margin-bottom: vars.$spacing-md;
+    color: white;
+  }
+  
+  &-header {
+    padding: vars.$spacing-sm vars.$spacing-md;
+    margin-bottom: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    
+    &:first-child {
+      border-radius: calc(#{vars.$border-radius-md} - 1px) calc(#{vars.$border-radius-md} - 1px) 0 0;
+    }
+  }
+  
+  &-footer {
+    padding: vars.$spacing-sm vars.$spacing-md;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    
+    &:last-child {
+      border-radius: 0 0 calc(#{vars.$border-radius-md} - 1px) calc(#{vars.$border-radius-md} - 1px);
+    }
+  }
+  
+  &-img {
+    width: 100%;
+    
+    &-top {
+      border-top-left-radius: calc(#{vars.$border-radius-md} - 1px);
+      border-top-right-radius: calc(#{vars.$border-radius-md} - 1px);
+    }
+    
+    &-bottom {
+      border-bottom-left-radius: calc(#{vars.$border-radius-md} - 1px);
+      border-bottom-right-radius: calc(#{vars.$border-radius-md} - 1px);
+    }
+  }
+  
+  &-link {
+    color: vars.$primary-blue;
+    text-decoration: none;
+    
+    &:hover {
+      color: vars.$primary-green;
+      text-decoration: none;
+    }
+  }
+  
+  /* Card Action Area */
+  &-actions {
+    display: flex;
+    padding: vars.$spacing-xs vars.$spacing-sm;
+    
+    .btn {
+      margin-right: vars.$spacing-xs;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+/* Glass Card */
+.card-glass {
+  @include mix.glass-morphism;
+  border: vars.$glass-border;
+  backdrop-filter: vars.$glass-blur;
+  
+  &:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .card-title {
+    position: relative;
+    display: inline-block;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, vars.$primary-green, transparent);
+    }
+  }
+}
+
+/* Neon Card */
+.card-neon {
+  background-color: rgba(10, 14, 20, 0.8);
+  border: 1px solid rgba(vars.$primary-blue, 0.3);
+  box-shadow: 0 0 10px rgba(vars.$primary-blue, 0.2);
+  
+  &:hover {
+    box-shadow: 0 0 15px rgba(vars.$primary-blue, 0.4), 0 0 30px rgba(vars.$primary-blue, 0.2);
+  }
+  
+  .card-title {
+    @include mix.neon-glow(vars.$primary-blue);
+    color: vars.$primary-blue;
+  }
+}
+
+/* Terminal Card */
+.card-terminal {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid vars.$primary-green;
+  font-family: vars.$font-heading;
+  
+  &:hover {
+    box-shadow: vars.$glow-green;
+  }
+  
+  .card-header {
+    background-color: rgba(vars.$primary-green, 0.1);
+    border-bottom: 1px solid vars.$primary-green;
+    color: vars.$primary-green;
+    font-family: vars.$font-heading;
+    
+    &::before {
+      content: '> ';
+    }
+  }
+  
+  .card-title {
+    @include mix.terminal-text;
+    letter-spacing: 1px;
+  }
+  
+  .card-body {
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: vars.$spacing-sm;
+      left: vars.$spacing-md;
+      width: 10px;
+      height: 15px;
+      background-color: vars.$primary-green;
+      opacity: 0.7;
+      animation: blink 1s step-end infinite;
+    }
+  }
+  
+  &.no-cursor .card-body::after {
+    display: none;
+  }
+}
+
+/* Cyberpunk Card */
+.card-cyber {
+  @include mix.cyberpunk-border;
+  background-color: rgba(16, 23, 35, 0.9);
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .card-header {
+    border-bottom: none;
+    background: linear-gradient(90deg, rgba(vars.$primary-purple, 0.2), rgba(vars.$primary-blue, 0.2));
+  }
+  
+  .card-title {
+    font-family: vars.$font-heading;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: vars.$primary-blue;
+    text-shadow: 0 0 5px rgba(vars.$primary-blue, 0.5);
+  }
+}
+
+/* Image Overlay Card */
+.card-overlay {
+  position: relative;
+  
+  .card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .card-img-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: vars.$spacing-md;
+    background-color: rgba(vars.$background, 0.7);
+    backdrop-filter: blur(3px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+}
+
+/* Horizontal Card */
+.card-horizontal {
+  display: flex;
+  flex-direction: row;
+  
+  .card-img {
+    width: 40%;
+    border-radius: vars.$border-radius-md 0 0 vars.$border-radius-md;
+    
+    @include mix.mobile {
+      width: 100%;
+      border-radius: vars.$border-radius-md vars.$border-radius-md 0 0;
+    }
+  }
+  
+  @include mix.mobile {
+    flex-direction: column;
+  }
+}
+
+/* Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: vars.$spacing-md;
+  
+  @include mix.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Deck */
+.card-deck {
+  display: flex;
+  flex-flow: row wrap;
+  margin-right: -(vars.$spacing-sm);
+  margin-left: -(vars.$spacing-sm);
+  
+  .card {
+    flex: 1 0 0%;
+    margin-right: vars.$spacing-sm;
+    margin-left: vars.$spacing-sm;
+    margin-bottom: vars.$spacing-md;
+    
+    @include mix.mobile {
+      flex: none;
+      width: 100%;
+    }
+  }
+}
+
+/* Card Group */
+.card-group {
+  display: flex;
+  flex-flow: row wrap;
+  
+  .card {
+    flex: 1 0 0%;
+    margin-bottom: 0;
+    
+    &:not(:last-child) {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-right: 0;
+    }
+    
+    &:not(:first-child) {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    @include mix.mobile {
+      &:not(:last-child) {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+    }
+  }
+  
+  @include mix.mobile {
+    flex-direction: column;
+  }
+} 

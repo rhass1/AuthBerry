@@ -1,0 +1,372 @@
+@use '../utils/variables' as vars;
+@use '../utils/mixins' as mix;
+@use 'sass:color';
+
+/* Terminal UI Elements */
+
+/* Terminal Container */
+.terminal {
+  @include mix.scan-lines;
+  font-family: vars.$font-heading;
+  background-color: rgba(0, 0, 0, 0.9);
+  border: 1px solid vars.$primary-green;
+  border-radius: vars.$border-radius-md;
+  color: vars.$primary-green;
+  position: relative;
+  overflow: hidden;
+  padding: vars.$spacing-md;
+  min-height: 200px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background-color: rgba(vars.$primary-green, 0.1);
+    border-bottom: 1px solid vars.$primary-green;
+    z-index: 1;
+  }
+  
+  &-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: vars.$spacing-xs vars.$spacing-sm;
+    margin: -(vars.$spacing-md);
+    margin-bottom: vars.$spacing-md;
+    height: 30px;
+    background-color: rgba(vars.$primary-green, 0.1);
+    border-bottom: 1px solid vars.$primary-green;
+    z-index: 2;
+    
+    &-title {
+      font-size: vars.$font-size-md;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 auto;
+    }
+    
+    &-controls {
+      position: absolute;
+      top: 50%;
+      left: vars.$spacing-sm;
+      transform: translateY(-50%);
+      display: flex;
+      
+      span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 6px;
+        
+        &:nth-child(1) {
+          background-color: #FF5F56;
+        }
+        
+        &:nth-child(2) {
+          background-color: #FFBD2E;
+        }
+        
+        &:nth-child(3) {
+          background-color: #27C93F;
+        }
+      }
+    }
+  }
+  
+  &-body {
+    padding-top: vars.$spacing-sm;
+    min-height: 150px;
+    font-size: vars.$font-size-md;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    
+    &.typing {
+      &::after {
+        content: '|';
+        animation: blink 1s step-end infinite;
+      }
+    }
+  }
+  
+  &-input {
+    display: flex;
+    align-items: center;
+    margin-top: vars.$spacing-md;
+    
+    &::before {
+      content: '>';
+      margin-right: vars.$spacing-xs;
+      color: vars.$primary-green;
+    }
+    
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-family: vars.$font-heading;
+      font-size: vars.$font-size-md;
+      color: vars.$primary-green;
+      outline: none;
+      
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+  
+  &-line {
+    margin-bottom: vars.$spacing-xs;
+    
+    &::before {
+      content: '>';
+      margin-right: vars.$spacing-xs;
+      color: vars.$primary-green;
+    }
+    
+    &.error {
+      color: #FF5F56;
+      
+      &::before {
+        content: '!';
+        color: #FF5F56;
+      }
+    }
+    
+    &.warning {
+      color: #FFBD2E;
+      
+      &::before {
+        content: '?';
+        color: #FFBD2E;
+      }
+    }
+    
+    &.success {
+      color: #27C93F;
+      
+      &::before {
+        content: '+';
+        color: #27C93F;
+      }
+    }
+    
+    &.info {
+      color: vars.$primary-blue;
+      
+      &::before {
+        content: 'i';
+        color: vars.$primary-blue;
+      }
+    }
+  }
+}
+
+/* Code Block */
+.code-block {
+  @include mix.scan-lines;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(vars.$primary-green, 0.3);
+  border-radius: vars.$border-radius-md;
+  padding: vars.$spacing-md;
+  margin: vars.$spacing-md 0;
+  overflow-x: auto;
+  position: relative;
+  
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -(vars.$spacing-md);
+    margin-bottom: vars.$spacing-md;
+    padding: vars.$spacing-xs vars.$spacing-md;
+    background-color: rgba(vars.$primary-green, 0.1);
+    border-bottom: 1px solid rgba(vars.$primary-green, 0.3);
+    font-family: vars.$font-heading;
+    font-size: vars.$font-size-sm;
+    color: vars.$primary-green;
+  }
+  
+  &-content {
+    font-family: vars.$font-heading;
+    line-height: 1.5;
+    color: #E6E6E6;
+    
+    .keyword { color: #FF5F56; }
+    .function { color: #FFBD2E; }
+    .string { color: #27C93F; }
+    .number { color: vars.$primary-blue; }
+    .comment { color: #8A8A8A; }
+  }
+  
+  &-copy {
+    position: absolute;
+    top: vars.$spacing-xs;
+    right: vars.$spacing-xs;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: vars.$spacing-xs;
+    
+    &:hover {
+      color: white;
+    }
+  }
+}
+
+/* Console Output */
+.console-output {
+  font-family: vars.$font-heading;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: vars.$border-radius-md;
+  padding: vars.$spacing-md;
+  margin: vars.$spacing-md 0;
+  color: #E6E6E6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+  
+  .text-error { color: #FF5F56; }
+  .text-warning { color: #FFBD2E; }
+  .text-success { color: #27C93F; }
+  .text-info { color: vars.$primary-blue; }
+}
+
+/* Command Line */
+.command-line {
+  display: flex;
+  align-items: center;
+  padding: vars.$spacing-xs vars.$spacing-sm;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(vars.$primary-green, 0.3);
+  border-radius: vars.$border-radius-md;
+  margin: vars.$spacing-md 0;
+  
+  &::before {
+    content: '>';
+    margin-right: vars.$spacing-sm;
+    color: vars.$primary-green;
+    font-family: vars.$font-heading;
+  }
+  
+  .command {
+    font-family: vars.$font-heading;
+    color: white;
+    flex: 1;
+  }
+  
+  .run-button {
+    margin-left: vars.$spacing-sm;
+    background-color: rgba(vars.$primary-green, 0.1);
+    border: 1px solid vars.$primary-green;
+    color: vars.$primary-green;
+    font-family: vars.$font-heading;
+    font-size: vars.$font-size-sm;
+    padding: 2px vars.$spacing-xs;
+    border-radius: vars.$border-radius-sm;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: rgba(vars.$primary-green, 0.2);
+    }
+  }
+}
+
+/* Interactive Terminal */
+.interactive-terminal {
+  @extend .terminal;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  
+  &-header {
+    @extend .terminal-header;
+  }
+  
+  &-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: vars.$spacing-sm 0;
+    
+    .output-line {
+      margin-bottom: vars.$spacing-xs;
+      
+      &.command {
+        color: white;
+        
+        &::before {
+          content: '>';
+          margin-right: vars.$spacing-xs;
+          color: vars.$primary-green;
+        }
+      }
+      
+      &.response {
+        color: #E6E6E6;
+        padding-left: vars.$spacing-md;
+      }
+      
+      &.error {
+        color: #FF5F56;
+      }
+      
+      &.warning {
+        color: #FFBD2E;
+      }
+      
+      &.success {
+        color: #27C93F;
+      }
+    }
+  }
+  
+  &-input-line {
+    display: flex;
+    align-items: center;
+    padding-top: vars.$spacing-sm;
+    border-top: 1px solid rgba(vars.$primary-green, 0.2);
+    
+    &::before {
+      content: '>';
+      margin-right: vars.$spacing-xs;
+      color: vars.$primary-green;
+    }
+    
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-family: vars.$font-heading;
+      font-size: vars.$font-size-md;
+      color: white;
+      outline: none;
+      
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}
+
+/* ASCII Art Container */
+.ascii-art {
+  font-family: vars.$font-heading;
+  white-space: pre;
+  line-height: 1.2;
+  font-size: 12px;
+  color: vars.$primary-green;
+  
+  &.small {
+    font-size: 8px;
+  }
+  
+  &.large {
+    font-size: 16px;
+  }
+} 

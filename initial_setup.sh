@@ -151,7 +151,7 @@ prompt_yes_no() {
 }
 
 # Waits for a Docker container to be running and responsive.
-# Checks for Flask/SocketIO startup indicators in Docker logs.
+# Uses the health endpoint to verify the Flask application is ready.
 check_container_ready() {
   local container_name="$1"
   local max_attempts="${2:-30}" # Approx 60 seconds
@@ -161,10 +161,16 @@ check_container_ready() {
   while [ "$attempt" -lt "$max_attempts" ]; do
     if docker container inspect "$container_name" &>/dev/null && \
        [[ "$(docker container inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null)" == "running" ]]; then
-      # Check for Flask application startup indicators
-      local logs=$(docker logs "$container_name" 2>&1)
-      if echo "$logs" | grep -q "Starting Application..." && \
-         echo "$logs" | grep -q "Initializing WebSocket Service"; then
+      
+      # Check if Flask application is responding via health endpoint
+      # Get the Flask port from the .env file
+      local flask_port
+      flask_port=$(grep "^FLASK_PORT=" "$SCRIPT_DIR/.env" 2>/dev/null | cut -d'=' -f2)
+      if [ -z "$flask_port" ]; then
+        flask_port="1337"  # Default fallback
+      fi
+      
+      if curl -s -f "http://localhost:$flask_port/api/ping" >/dev/null 2>&1; then
         echo "[+] Container '$container_name' is ready."
         return 0
       fi

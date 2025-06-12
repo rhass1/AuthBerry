@@ -298,11 +298,13 @@
 import { ref, onMounted, reactive, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useSplashStore } from '@/stores/splash'
 import axios from 'axios'
 import ProfilePhotoUploader from '@/components/ProfilePhotoUploader.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const splashStore = useSplashStore()
 const accountForm = ref(null)
 const profileForm = ref(null)
 const usernameInput = ref(null)
@@ -530,7 +532,10 @@ async function completeSetup() {
       }
     }
 
-    // Navigate to dashboard
+    // 3. Reset splash state so it will show after setup
+    splashStore.resetSplashState()
+
+    // 4. Navigate to dashboard (router guard will handle splash screen)
     router.push('/dashboard')
   } catch (error) {
     errorMessage.value = error.message || "An error occurred during setup"

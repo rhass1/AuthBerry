@@ -256,6 +256,9 @@ export const useAuthStore = defineStore('auth', {
             this.setToken(response.tokens.access_token || response.tokens.access,
                          response.tokens.refresh_token || response.tokens.refresh);
 
+            // Mark this as a fresh login for splash screen logic
+            localStorage.setItem('lastLoginTime', Date.now().toString());
+
             return true;
           } else {
             this.error = 'Invalid login response from server';
@@ -276,6 +279,9 @@ export const useAuthStore = defineStore('auth', {
             // Set tokens
             this.setToken(response.data.tokens.access_token || response.data.tokens.access,
                          response.data.tokens.refresh_token || response.data.tokens.refresh);
+
+            // Mark this as a fresh login for splash screen logic
+            localStorage.setItem('lastLoginTime', Date.now().toString());
 
             return true;
           } else {
@@ -496,6 +502,9 @@ export const useAuthStore = defineStore('auth', {
 
         // Update local state flag
         this.anyUsersExist = true
+
+        // Mark this as a fresh login for splash screen logic
+        localStorage.setItem('lastLoginTime', Date.now().toString());
 
         return true
       } catch (error) {

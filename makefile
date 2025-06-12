@@ -30,9 +30,9 @@ NODE_ENV_PROD = production
 # Docker buildx setup
 .PHONY: buildx-setup
 buildx-setup:
-	@if ! docker buildx ls | grep -q "buildx-builder"; then \
+	@if ! docker buildx ls | grep -q "shared-builder"; then \
 		echo "Setting up Docker Buildx builder..."; \
-		docker buildx create --name buildx-builder --use; \
+		docker buildx create --name shared-builder --use; \
 		docker buildx inspect --bootstrap; \
 	else \
 		echo "Docker Buildx builder already exists"; \

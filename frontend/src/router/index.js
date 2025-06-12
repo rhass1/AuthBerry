@@ -184,17 +184,18 @@ router.beforeEach(async (to, from, next) => {
       const lastLoginTime = localStorage.getItem('lastLoginTime')
       const currentTime = Date.now()
 
-      // Consider login fresh if within last 2 seconds or no previous login recorded
-      const isFreshLogin = !lastLoginTime || (currentTime - parseInt(lastLoginTime)) < 2000
+      // Consider login fresh if within last 10 seconds or no previous login recorded
+      // Extended time window to handle setup completion and other flows
+      const isFreshLogin = !lastLoginTime || (currentTime - parseInt(lastLoginTime)) < 10000
 
-      if (isFreshLogin) {
-        // This appears to be a fresh login - update timestamp and show splash
-        localStorage.setItem('lastLoginTime', currentTime.toString())
+      // Special case: if coming from setup, always show splash (since setup creates fresh login)
+      if (from.name === 'setup' || isFreshLogin) {
+        // This appears to be a fresh login - show splash
         return next({ name: 'splash' })
       }
 
-      // For existing dashboards or other path navigations
-      if (to.path === '/dashboard') {
+      // For existing dashboards or other path navigations after fresh login
+      if (to.path === '/dashboard' && isFreshLogin) {
         return next({ name: 'splash' })
       }
     }

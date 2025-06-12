@@ -16,7 +16,7 @@ def health_check():
     health_status = {
         "status": "healthy",
         "timestamp": time.time(),
-        "service": "AuthBerry_Backup API",
+        "service": "AuthBerry API",
         "checks": {
             "database": "unknown",
             "tpm": "unknown"

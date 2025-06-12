@@ -112,48 +112,51 @@ router.beforeEach(async (to, from, next) => {
     await authStore.refreshUserData()
     
     // Re-apply token to axios headers
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`
+    if (authStore.token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`
+    }
   }
 
-  // Check if any users exist in the database - needed for setup redirect
+  let anyUsers = false
+  let userCheckFailed = false
+  
   try {
-    const anyUsers = await authStore.checkIfUsersExist()
-
-    // Setup page logic - redirect away if users already exist
-    if (to.name === 'setup') {
-      if (anyUsers) {
-        // For the setup page specifically, do a more thorough check of authentication
-        // to prevent losing auth state during the redirect
-        if (authStore.token || authStore.user || authStore.isAuthenticated) {
-          // Force refresh the user data to ensure we have the latest
-          try {
-            await authStore.refreshUserData()
-          } catch (error) {
-            // If refresh fails, continue with what we have
-          }
-          
-          // Make sure token is in axios headers (re-apply to be safe)
-          if (authStore.token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`
-          }
-          
-          // Redirect authenticated users directly to dashboard
-          return next({ name: 'dashboard' })
-        } else {
-          // Only redirect to home if definitely not authenticated
-          return next({ name: 'home' })
-        }
-      }
-      // Otherwise allow access to setup
-      return next()
-    }
-
-    // If no users exist and not going to setup page, redirect to setup
-    if (!anyUsers && to.name !== 'setup') {
-      return next({ name: 'setup' })
-    }
+    anyUsers = await authStore.checkIfUsersExist()
   } catch (error) {
-    // Continue navigation despite error
+    userCheckFailed = true
+    
+    if (authStore.isAuthenticated && authStore.user) {
+      anyUsers = true
+    } else {
+      anyUsers = false
+    }
+  }
+
+  // Setup page logic - redirect away if users already exist
+  if (to.name === 'setup') {
+    if (anyUsers) {
+      if (authStore.token || authStore.user || authStore.isAuthenticated) {
+        try {
+          await authStore.refreshUserData()
+        } catch (error) {
+          // If refresh fails, continue with what we have
+        }
+        
+        if (authStore.token) {
+          axios.defaults.headers.common['Authorization'] = `Bearer ${authStore.token}`
+        }
+        
+        return next({ name: 'dashboard' })
+      } else {
+        return next({ name: 'home' })
+      }
+    }
+    return next()
+  }
+
+  // If no users exist and not going to setup page, redirect to setup
+  if (!anyUsers && !userCheckFailed && to.name !== 'setup') {
+    return next({ name: 'setup' })
   }
 
   // For pages that require authentication

@@ -94,13 +94,21 @@ const photoError = ref(null);
 const photoSelected = ref(false);
 
 const imageUrl = ref(null);
-const previewUrl = ref(props.initialPhotoData);
+const previewUrl = ref(null);
 const imageType = ref('image/png');
 
 onMounted(() => {
   if (props.initialPhotoData) {
-    previewUrl.value = props.initialPhotoData;
-    photoSelected.value = true;
+    if (props.initialPhotoData.startsWith('http') || props.initialPhotoData.startsWith('/api/')) {
+      if (props.initialPhotoData.startsWith('/api/')) {
+        previewUrl.value = `${window.location.origin}${props.initialPhotoData}`
+      } else {
+        previewUrl.value = props.initialPhotoData
+      }
+    } else {
+      previewUrl.value = props.initialPhotoData
+    }
+    photoSelected.value = true
   }
 });
 

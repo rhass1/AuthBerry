@@ -523,14 +523,13 @@ async function completeRegistration() {
 // Upload profile photo if provided
 async function uploadProfilePhoto() {
   if (!profilePhoto.value) {
-    return true // No photo to upload, so consider it a success
+    return true
   }
 
   try {
     const formData = new FormData()
     formData.append('photo', profilePhoto.value)
 
-    // Use the auth store to handle the profile photo upload
     const result = await authStore.updateProfilePhoto(profilePhoto.value)
 
     if (result) {

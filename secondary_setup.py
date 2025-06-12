@@ -308,8 +308,8 @@ def is_raspberry_pi():
 
 
 def main():
-    """Main function to set up the AuthBerry_Backup environment."""
-    print("[+] AuthBerry_Backup Configuration Script")
+    """Main function to set up the AuthBerry environment."""
+    print("[+] AuthBerry Configuration Script")
     print("=========================")
     
     # Get system information from .env
@@ -344,7 +344,7 @@ def main():
     generate_secrets()
 
     print("")
-    print("[+] AuthBerry_Backup configuration completed successfully!")
+    print("[+] AuthBerry configuration completed successfully!")
 
 
 if __name__ == "__main__":

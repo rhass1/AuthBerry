@@ -472,8 +472,8 @@ async function uploadProfilePhoto(userId) {
       }
     })
     
-    if (response.data.user && response.data.user.profile_photo) {
-      profilePhotoData.value = response.data.user.profile_photo
+    if (response.data.user && response.data.user.profile_photo_url) {
+      profilePhotoData.value = response.data.user.profile_photo_url
       return true
     }
     

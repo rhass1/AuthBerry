@@ -542,23 +542,19 @@ async function completeSetup() {
 // Upload profile photo if provided
 async function uploadProfilePhoto() {
   if (!profilePhoto.value) {
-    return true // No photo to upload, so consider it a success
+    return true
   }
 
   try {
-    // Get token from localStorage directly
     const token = localStorage.getItem('authToken')
 
     if (!token) {
       return false
     }
 
-    // Create form data
     const formData = new FormData()
     formData.append('photo', profilePhoto.value)
 
-    // Try to upload with multiple methods
-    // Method 1: Direct fetch API with token in header
     try {
       const response = await fetch('/api/users/profile-photo', {
         method: 'POST',
@@ -570,15 +566,14 @@ async function uploadProfilePhoto() {
 
       const result = await response.json()
 
-      if (response.ok && result.user && result.user.profile_photo) {
-        profilePhotoData.value = result.user.profile_photo
+      if (response.ok && result.user && result.user.profile_photo_url) {
+        profilePhotoData.value = result.user.profile_photo_url
         return true
       }
     } catch (fetchError) {
-      // Fetch API upload failed (console.error removed)
+      
     }
 
-    // Method 2: Axios with explicit token
     try {
       const response = await axios.post('/api/users/profile-photo', formData, {
         headers: {
@@ -587,12 +582,12 @@ async function uploadProfilePhoto() {
         }
       })
 
-      if (response.data.user && response.data.user.profile_photo) {
-        profilePhotoData.value = response.data.user.profile_photo
+      if (response.data.user && response.data.user.profile_photo_url) {
+        profilePhotoData.value = response.data.user.profile_photo_url
         return true
       }
     } catch (axiosError) {
-      // Axios upload failed (console.error removed)
+      
     }
 
     return false

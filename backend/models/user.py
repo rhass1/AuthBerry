@@ -85,22 +85,21 @@ class User(db.Model, UserMixin):
             return f"{self.first_name} {self.last_name}"
         return self.username
 
-    def set_profile_photo(self, image_data, max_size=300):
-        """Store profile photo as base64 in the database after resizing
-        
-        Args:
-            image_data: The raw binary image data
-            max_size: Maximum width/height in pixels (default: 300px)
-        """
+    def set_profile_photo(self, image_data, max_size=200):
         try:
-            # Resize the image to a reasonable size
             import io
             import base64
+            from PIL import Image
             
-            # Load image from binary data
             img = Image.open(io.BytesIO(image_data))
             
-            # Calculate new dimensions while preserving aspect ratio
+            if img.mode == 'RGBA':
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            
             width, height = img.size
             if width > max_size or height > max_size:
                 if width > height:
@@ -110,15 +109,12 @@ class User(db.Model, UserMixin):
                     new_height = max_size
                     new_width = int(width * (max_size / height))
                 
-                # Resize the image
                 img = img.resize((new_width, new_height), Image.LANCZOS)
             
-            # Convert to PNG format with compression
             output = io.BytesIO()
-            img.save(output, format='PNG', optimize=True, quality=85)
+            img.save(output, format='JPEG', optimize=True, quality=75)
             compressed_data = output.getvalue()
             
-            # Store as base64 string in the database
             self.profile_photo = base64.b64encode(compressed_data).decode('utf-8')
             
             print(f"Profile photo processed and saved as base64 ({len(self.profile_photo)} chars)")

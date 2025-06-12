@@ -81,7 +81,7 @@ class Config:
     MAIL_DEFAULT_SENDER = 'no-reply@authberry.local'  # Default sender for Flask-Security emails
 
     # Application name
-    APP_NAME = 'AuthBerry_Backup'
+    APP_NAME = 'AuthBerry'
     
     # Get secrets from TPM
     JWT_SECRET = get_secret_from_file("jwt_secret")

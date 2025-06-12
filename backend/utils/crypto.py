@@ -72,7 +72,7 @@ class CryptoService:
             algorithm=hashes.SHA256(),
             length=32,
             salt=None,
-            info=b'AuthBerry_Backup E2EE Key'
+            info=b'AuthBerry E2EE Key'
         ).derive(shared_key)
 
         return base64.b64encode(derived_key).decode('utf-8')

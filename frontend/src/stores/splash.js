@@ -4,6 +4,8 @@ import { ref } from 'vue'
 export const useSplashStore = defineStore('splash', () => {
   // State
   const splashShown = ref(false)
+  const splashVisible = ref(false)
+  const splashMessage = ref('')
 
   // Actions
   function markSplashAsShown() {
@@ -22,9 +24,32 @@ export const useSplashStore = defineStore('splash', () => {
     splashShown.value = hasSeenSplash
   }
 
+  function resetSplashState() {
+    // Reset the splash state so it can be shown again
+    splashShown.value = false
+    localStorage.removeItem('splashScreenSeen')
+  }
+
+  function showSplash(message = '') {
+    // Show the splash screen with an optional message
+    splashVisible.value = true
+    splashMessage.value = message
+  }
+
+  function hideSplash() {
+    // Hide the splash screen
+    splashVisible.value = false
+    splashMessage.value = ''
+  }
+
   return {
     splashShown,
+    splashVisible,
+    splashMessage,
     markSplashAsShown,
-    initialize
+    initialize,
+    resetSplashState,
+    showSplash,
+    hideSplash
   }
 })

@@ -886,21 +886,15 @@ async function handleCreateUser() {
     if (response.data && response.data.user) {
       // If we have a profile photo, upload it for the new user
       if (createUserDialog.form.photo) {
-        try {
-          // Create form data
-          const formData = new FormData()
-          formData.append('photo', createUserDialog.form.photo)
-          formData.append('user_id', response.data.user.id) // Pass the user ID for admin-created users
+        const formData = new FormData()
+        formData.append('photo', createUserDialog.form.photo)
 
-          // Upload the photo
-          await axios.post('/api/users/profile-photo', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-        } catch (photoError) {
-          // Continue even if photo upload fails
-        }
+        await axios.post('/api/users/profile-photo', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
       }
 
       // Add user to the list

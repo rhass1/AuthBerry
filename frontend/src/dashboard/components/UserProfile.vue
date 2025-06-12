@@ -157,18 +157,14 @@ function formatTimeAgo(dateString) {
 
 // Function to handle profile photo errors
 function handleProfilePhotoError(event) {
-  // Mark the photo as failed to load so we don't try to display it again
   profilePhotoLoadError.value = true
 
-  // Try to refresh user data to get a fresh profile URL
   authStore.refreshUserData().then(() => {
-    // If we have a profile photo and it's a data URI (base64), we can try again
-    if (authStore.profilePhoto && authStore.profilePhoto.startsWith('data:image')) {
-      // Reset error state to allow the image to display
+    if (authStore.profilePhoto) {
       profilePhotoLoadError.value = false
     }
   }).catch(error => {
-    // Error refreshing user data (console.error removed)
+    
   })
 }
 </script>

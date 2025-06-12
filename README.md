@@ -155,7 +155,7 @@ AuthBerry is designed to be deployed on a dedicated device (preferably a Raspber
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/yourusername/AuthBerry.git
-   cd AuthBerry_Backup
+   cd AuthBerry
    ```
 
 2. **Run the Setup Script**:

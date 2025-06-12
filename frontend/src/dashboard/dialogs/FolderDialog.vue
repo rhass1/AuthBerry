@@ -470,18 +470,15 @@ function getDisplayName(user) {
 }
 
 function getUserAvatar(user) {
-  // Return default avatar if no user or no profile photo
-  if (!user || !user.profile_photo) {
-    return null;
+  if (!user || !user.profile_photo_url) {
+    return null
   }
 
-  // If it's already a data URL, return it
-  if (user.profile_photo.startsWith('data:image/')) {
-    return user.profile_photo;
+  if (user.profile_photo_url.startsWith('http')) {
+    return user.profile_photo_url
   }
 
-  // Otherwise, add data:image prefix
-  return `data:image/jpeg;base64,${user.profile_photo}`;
+  return `${window.location.origin}${user.profile_photo_url}`
 }
 </script>
 

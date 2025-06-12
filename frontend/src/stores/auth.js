@@ -57,22 +57,13 @@ export const useAuthStore = defineStore('auth', {
       return state.user.username
     },
     profilePhoto: (state) => {
-      // Return the base64 profile photo if it exists
-      if (state.user?.profile_photo) {
-        // If the photo is already a data URI (starts with 'data:image'), return it as is
-        if (state.user.profile_photo.startsWith('data:image')) {
-          return state.user.profile_photo;
-        }
-
-        // If it's not a data URI but looks like a base64 string without the prefix, add the prefix
-        if (state.user.profile_photo.match(/^[A-Za-z0-9+/=]+$/)) {
-          return `data:image/jpeg;base64,${state.user.profile_photo}`;
-        }
-
-        // Otherwise, return the profile photo value as is
-        return state.user.profile_photo;
+      if (!state.user?.profile_photo_url) return null
+      
+      if (state.user.profile_photo_url.startsWith('http')) {
+        return state.user.profile_photo_url
       }
-      return null;
+      
+      return `${window.location.origin}${state.user.profile_photo_url}`
     },
     userRole: (state) => state.user?.role || null,
     username: (state) => state.user?.username || null,
@@ -518,23 +509,17 @@ export const useAuthStore = defineStore('auth', {
     // Refresh user data from server
     async refreshUserData() {
       try {
-        // Set Authorization header for this request
         const token = localStorage.getItem('authToken')
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-          // Ensure token is set in state as well
           this.token = token
         }
 
-        // Get user data
         const response = await axios.get('/api/auth/me')
 
         if (response && response.data && response.data.user) {
-          // Set user data
           this.user = response.data.user
 
-          // Update workspace if it exists
           if (response.data.workspace) {
             this.workspace = response.data.workspace
           }
@@ -544,7 +529,6 @@ export const useAuthStore = defineStore('auth', {
           return null
         }
       } catch (error) {
-        // If 401/403/404, clear authentication state
         if (error.response && (error.response.status === 401 || error.response.status === 403 || error.response.status === 404)) {
           this.clearAuthentication()
         }
@@ -590,13 +574,11 @@ export const useAuthStore = defineStore('auth', {
         })
 
         if (response.data && response.data.user) {
-          // Update user with new photo data
           this.user = {
             ...this.user,
-            profile_photo: response.data.user.profile_photo
+            profile_photo_url: response.data.user.profile_photo_url
           }
 
-          // Save updated user to local storage
           this.saveAuth()
           return true
         } else {
@@ -787,22 +769,34 @@ export const useAuthStore = defineStore('auth', {
     // Check if any users exist in the system
     async checkIfUsersExist() {
       try {
-        // Use a unique URL with timestamp to avoid browser caching
         const timestamp = Date.now()
         const response = await axios.get(`/api/auth/check-users-exist?t=${timestamp}`, {
-          // Important: Don't send cookies to avoid large header
           withCredentials: false,
           headers: {
-            // Don't include any unnecessary headers
             'Accept': 'application/json',
-            // Remove authorization if present to reduce header size
-            'Authorization': null
-          }
+            'Content-Type': 'application/json'
+          },
+          timeout: 5000
         })
         this.anyUsersExist = response.data.users_exist
         return this.anyUsersExist
       } catch (error) {
-        // Default to false on error
+        if (error.response?.status === 431) {
+          try {
+            const fallbackResponse = await fetch(`/api/auth/check-users-exist?t=${Date.now()}`, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              },
+              credentials: 'omit'
+            })
+            const data = await fallbackResponse.json()
+            this.anyUsersExist = data.users_exist
+            return this.anyUsersExist
+          } catch (fallbackError) {
+            return false
+          }
+        }
         return false
       }
     },

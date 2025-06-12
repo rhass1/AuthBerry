@@ -54,11 +54,18 @@ def admin_required(view_function):
 
 @auth_bp.route('/check-users-exist', methods=['GET'])
 def check_users_exist():
-    """
-    Check if any users exist in the database.
-    """
-    users_exist = User.query.count() > 0
-    return jsonify({"users_exist": users_exist}), 200
+    try:
+        users_exist = User.query.count() > 0
+        
+        response = jsonify({"users_exist": users_exist})
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response, 200
+    except Exception as e:
+        current_app.logger.error(f"Error checking users exist: {str(e)}")
+        return jsonify({"users_exist": False, "error": "Database error"}), 500
 
 @auth_bp.route('/setup', methods=['POST'])
 @secure_setup_only
@@ -99,6 +106,10 @@ def setup_admin():
 
     current_app.logger.info(f"Admin user {username} created successfully")
 
+    profile_photo_url = None
+    if admin_user.profile_photo:
+        profile_photo_url = f"/api/users/{admin_user.id}/profile-photo"
+
     return jsonify({
         "success": True,
         "msg": "Admin user created successfully",
@@ -108,7 +119,8 @@ def setup_admin():
             "role": admin_user.role,
             "first_name": admin_user.first_name,
             "last_name": admin_user.last_name,
-            "display_name": admin_user.display_name
+            "display_name": admin_user.display_name,
+            "profile_photo_url": profile_photo_url
         },
         "tokens": {
             "access_token": access_token,
@@ -303,9 +315,6 @@ def refresh_token():
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def me():
-    """
-    Get the current user's information.
-    """
     try:
         auth_header = request.headers.get('Authorization')
         current_app.logger.info(f"ME endpoint - Auth header received: {auth_header[:30]}..." if auth_header else "No auth header")
@@ -339,6 +348,10 @@ def me():
 
         current_app.logger.info(f"User {user.username} (ID: {user.id}) authenticated successfully")
 
+        profile_photo_url = None
+        if user.profile_photo:
+            profile_photo_url = f"/api/users/{user.id}/profile-photo"
+
         return jsonify({
             "user": {
                 "id": user.id,
@@ -346,7 +359,7 @@ def me():
                 "role": user.role,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "profile_photo": user.profile_photo,
+                "profile_photo_url": profile_photo_url,
                 "display_name": user.display_name,
                 "created_time": user.created_time.isoformat() if user.created_time else None
             }
@@ -627,6 +640,10 @@ def get_current_user():
     if not user:
         return jsonify({"msg": "User not found"}), 404
 
+    profile_photo_url = None
+    if user.profile_photo:
+        profile_photo_url = f"/api/users/{user.id}/profile-photo"
+
     return jsonify({
         "user": {
             "id": user.id,
@@ -635,7 +652,7 @@ def get_current_user():
             "first_name": user.first_name,
             "last_name": user.last_name,
             "display_name": user.display_name,
-            "profile_photo": user.profile_photo,
+            "profile_photo_url": profile_photo_url,
             "created_time": user.created_time.isoformat() if user.created_time else None
         }
     }), 200

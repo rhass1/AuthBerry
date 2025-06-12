@@ -80,6 +80,10 @@ def get_user(user_id):
     if not user:
         return jsonify({"msg": "User not found"}), 404
 
+    profile_photo_url = None
+    if user.profile_photo:
+        profile_photo_url = f"/api/users/{user.id}/profile-photo"
+
     return jsonify({
         "user": {
             "id": user.id,
@@ -87,7 +91,7 @@ def get_user(user_id):
             "role": user.role,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "profile_photo": user.profile_photo,
+            "profile_photo_url": profile_photo_url,
             "display_name": user.display_name,
             "created_time": user.created_time.isoformat(),
             "last_modified": user.last_modified.isoformat()
@@ -162,10 +166,38 @@ def update_user(user_id):
     }), 200
 
 
+@users_bp.route('/<int:user_id>/profile-photo', methods=['GET'])
+def get_profile_photo(user_id):
+    try:
+        user = User.query.get(user_id)
+        if not user or not user.profile_photo:
+            return jsonify({"msg": "Profile photo not found"}), 404
+
+        try:
+            import base64
+            photo_data = base64.b64decode(user.profile_photo)
+            
+            response = current_app.response_class(
+                photo_data,
+                mimetype='image/jpeg',
+                headers={
+                    'Cache-Control': 'public, max-age=3600',
+                    'Content-Disposition': f'inline; filename="profile_{user_id}.jpg"'
+                }
+            )
+            return response
+        except Exception as e:
+            current_app.logger.error(f"Error decoding profile photo for user {user_id}: {str(e)}")
+            return jsonify({"msg": "Invalid profile photo data"}), 500
+            
+    except Exception as e:
+        current_app.logger.error(f"Error serving profile photo for user {user_id}: {str(e)}")
+        return jsonify({"msg": "Error retrieving profile photo"}), 500
+
+
 @users_bp.route('/profile-photo', methods=['POST'])
 @jwt_required(optional=True)
 def upload_profile_photo():
-    """Uploads a profile photo for the current user."""
     auth_header = request.headers.get('Authorization')
     current_app.logger.info(f"Request headers: {dict(request.headers)}")
     current_app.logger.info(f"Auth header received: {auth_header[:20]}..." if auth_header else "No auth header")
@@ -244,8 +276,15 @@ def upload_profile_photo():
         file_data = photo_file.read()
         current_app.logger.info(f"Read {len(file_data)} bytes from uploaded file")
 
-        user.set_profile_photo(file_data)
+        if len(file_data) > 2 * 1024 * 1024:
+            return jsonify({"msg": "Profile photo too large. Maximum size is 2MB."}), 400
+
+        user.set_profile_photo(file_data, max_size=200)
         db.session.commit()
+
+        profile_photo_url = None
+        if user.profile_photo:
+            profile_photo_url = f"/api/users/{user.id}/profile-photo"
 
         return jsonify({
             "msg": "Profile photo uploaded successfully",
@@ -256,7 +295,7 @@ def upload_profile_photo():
                 "last_name": user.last_name,
                 "role": user.role,
                 "display_name": user.display_name,
-                "profile_photo": user.profile_photo
+                "profile_photo_url": profile_photo_url
             }
         }), 200
 

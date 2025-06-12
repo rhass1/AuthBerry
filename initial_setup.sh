@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# AuthBerry_Backup Initial Setup Script
-# Prepares the environment for AuthBerry_Backup:
+# AuthBerry Initial Setup Script
+# Prepares the environment for AuthBerry:
 # - Installs system dependencies and Docker + Docker Compose.
 # - Creates a dedicated service user (because security is cool).
 # - Configures environment variables (.env file used by the application).
 # - Sets up a Python virtual environment.
 # - Runs a secondary Python configuration script (because Python is so much nicer to write than Bash).
-# - Optionally starts AuthBerry_Backup services (prompts the user).
+# - Optionally starts AuthBerry services (prompts the user).
 
 # --- Script Configuration & Safety ---
 set -o nounset # Treat unset variables as an error
@@ -151,7 +151,7 @@ prompt_yes_no() {
 }
 
 # Waits for a Docker container to be running and responsive.
-# Checks for "Running on" in Docker logs.
+# Uses the health endpoint to verify the Flask application is ready.
 check_container_ready() {
   local container_name="$1"
   local max_attempts="${2:-30}" # Approx 60 seconds
@@ -161,8 +161,16 @@ check_container_ready() {
   while [ "$attempt" -lt "$max_attempts" ]; do
     if docker container inspect "$container_name" &>/dev/null && \
        [[ "$(docker container inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null)" == "running" ]]; then
-      # Application specific check, "Running on" indicates Flask server started
-      if docker logs "$container_name" 2>&1 | grep -q "Running on"; then
+      
+      # Check if Flask application is responding via health endpoint
+      # Get the Flask port from the .env file
+      local flask_port
+      flask_port=$(grep "^FLASK_PORT=" "$SCRIPT_DIR/.env" 2>/dev/null | cut -d'=' -f2)
+      if [ -z "$flask_port" ]; then
+        flask_port="1337"  # Default fallback
+      fi
+      
+      if curl -s -f "http://localhost:$flask_port/api/ping" >/dev/null 2>&1; then
         echo "[+] Container '$container_name' is ready."
         return 0
       fi
@@ -413,7 +421,7 @@ else
   echo "[+] Docker Buildx builder already exists."
 fi
 
-# Prompt user to start AuthBerry_Backup services.
+# Prompt user to start AuthBerry services.
 if prompt_yes_no "Would you like to start the AuthBerry services now?"; then
   echo "[+] Starting AuthBerry services..."
   

@@ -67,7 +67,9 @@ def create_app(config_name=None):
     # Initialize CORS for all origins in a LAN environment
     cors.init_app(app, 
                  resources={r"/api/*": {"origins": "*"}},
-                 supports_credentials=True)
+                 supports_credentials=True,
+                 expose_headers=['Content-Type', 'Authorization'],
+                 allow_headers=['Content-Type', 'Authorization', 'Accept'])
     
     # Initialize SocketIO with CORS support - use gevent mode for single worker
     socketio.init_app(app, cors_allowed_origins="*", async_mode='gevent')

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AuthBerry_Backup Database Backup Script
+# AuthBerry Database Backup Script
 # Handles TPM-encrypted secrets properly
 
 set -euo pipefail

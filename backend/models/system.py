@@ -62,7 +62,7 @@ class SystemSetting(db.Model):
         """Initialize default system settings if they don't exist"""
         defaults = {
             'registration_enabled': ('true', 'boolean'),
-            'system_name': ('AuthBerry_Backup', 'string'),
+            'system_name': ('AuthBerry', 'string'),
             'max_login_attempts': ('5', 'int'),
         }
         

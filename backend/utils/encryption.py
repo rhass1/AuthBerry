@@ -2,7 +2,6 @@
 
 
 import os
-import base64
 from cryptography.fernet import Fernet
 from flask import current_app
 import logging

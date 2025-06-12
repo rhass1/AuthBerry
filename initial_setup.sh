@@ -129,9 +129,25 @@ get_tss_gid() {
       return 0
     fi
   fi
-  echo "[-] Error: TPM 2.0 support is required for this application." >&2
-  echo "    Could not identify 'tss' group ID, which indicates TPM software stack is not properly installed." >&2
-  echo "    Please ensure you're using a system with TPM 2.0 support and that 'tpm2-tools' is installed correctly." >&2
+  echo ""
+  echo "======================================================================="
+  echo "🚨 CRITICAL ERROR: TPM 2.0 SUPPORT NOT AVAILABLE"
+  echo "======================================================================="
+  echo "AuthBerry requires TPM 2.0 for security-critical operations."
+  echo "The 'tss' (TPM Software Stack) group was not found, indicating"
+  echo "that TPM 2.0 tools are not properly installed."
+  echo ""
+  echo "TPM 2.0 is MANDATORY for AuthBerry because it provides:"
+  echo "  • Hardware-backed secret storage"
+  echo "  • Cryptographic key generation and protection"
+  echo "  • Platform integrity verification"
+  echo ""
+  echo "Please install TPM 2.0 support:"
+  echo "  sudo apt update"
+  echo "  sudo apt install tpm2-tools libtss2-dev"
+  echo ""
+  echo "Ensure your system has TPM 2.0 hardware enabled in BIOS/firmware."
+  echo "======================================================================="
   exit 1
 }
 
@@ -372,9 +388,27 @@ fi
 # Check for TPM devices
 TPM_DEVICES=$(find_tpm_devices)
 if [ -z "$TPM_DEVICES" ]; then
-  echo "[-] Error: TPM 2.0 support is required for this application." >&2
-  echo "    No TPM devices were found on this system." >&2
-  echo "    Please ensure you're using a system with TPM 2.0 support." >&2
+  echo ""
+  echo "======================================================================="
+  echo "🚨 CRITICAL ERROR: NO TPM 2.0 DEVICES FOUND"
+  echo "======================================================================="
+  echo "AuthBerry requires TPM 2.0 hardware for security operations."
+  echo "No TPM devices were detected on this system."
+  echo ""
+  echo "TPM 2.0 is MANDATORY for AuthBerry. The application CANNOT"
+  echo "function without proper hardware security module support."
+  echo ""
+  echo "Please ensure:"
+  echo "  • TPM 2.0 is enabled in BIOS/UEFI firmware"
+  echo "  • TPM hardware is properly connected (for external modules)"
+  echo "  • System supports TPM 2.0 (not just TPM 1.2)"
+  echo ""
+  echo "For Raspberry Pi users:"
+  echo "  • Connect a compatible TPM 2.0 module (e.g., Infineon OPTIGA TPM SLB 9670)"
+  echo "  • Enable SPI interface in boot configuration"
+  echo ""
+  echo "SETUP CANNOT CONTINUE without functional TPM 2.0"
+  echo "======================================================================="
   exit 1
 fi
 
@@ -482,14 +516,65 @@ echo "    Application Directory: $SCRIPT_DIR"
 echo "    Virtual Environment:   $VENV_PATH"
 echo ""
 
-# Set up Docker Buildx
-echo "[+] Setting up Docker Buildx..."
-if ! sudo -u "$ACTUAL_USER" sg docker -c "docker buildx ls | grep -q 'buildx-builder'"; then
-  sudo -u "$ACTUAL_USER" sg docker -c "docker buildx create --name buildx-builder --use && docker buildx inspect --bootstrap"
-  echo "[+] Docker Buildx builder created."
-else
-  echo "[+] Docker Buildx builder already exists."
-fi
+# Set up Docker Buildx with resource limits
+echo "[+] Setting up Docker Buildx with resource-limited builder..."
+
+# Create buildkit configuration directory and copy config
+run_command mkdir -p /etc/buildkit/sgl-buildkit
+run_command cp "$SCRIPT_DIR/docker/buildkitd.toml" /etc/buildkit/sgl-buildkit/buildkitd.toml
+run_command chown root:root /etc/buildkit/sgl-buildkit/buildkitd.toml
+run_command chmod 644 /etc/buildkit/sgl-buildkit/buildkitd.toml
+
+# Function to create resource-limited builder
+setup_buildx_builder() {
+  echo "[+] Creating resource-limited Docker Buildx builder..."
+  
+  # Remove existing builder if it exists
+  if sudo -u "$ACTUAL_USER" sg docker -c "docker buildx ls | grep -q 'shared-builder'"; then
+    echo "[*] Removing existing shared-builder..."
+    sudo -u "$ACTUAL_USER" sg docker -c "docker buildx rm shared-builder" || true
+  fi
+  
+  # Create new builder with configuration
+  sudo -u "$ACTUAL_USER" sg docker -c "docker buildx create \
+    --name shared-builder \
+    --driver docker-container \
+    --driver-opt network=host \
+    --driver-opt image=moby/buildkit:latest \
+    --config /etc/buildkit/sgl-buildkit/buildkitd.toml \
+    --use"
+  
+  # Bootstrap the builder
+  echo "[*] Bootstrapping builder (starting container)..."
+  sudo -u "$ACTUAL_USER" sg docker -c "docker buildx inspect --bootstrap"
+  
+  # Wait for container to fully start
+  echo "[*] Waiting for builder container to stabilize..."
+  sleep 5
+  
+  # Find and apply resource limits to the builder container
+  echo "[*] Applying resource limits to builder container..."
+  BUILDER_CONTAINER=$(sudo -u "$ACTUAL_USER" sg docker -c 'docker ps --filter "name=buildx_buildkit_shared-builder" --format "{{.ID}}"')
+  
+  if [ -n "$BUILDER_CONTAINER" ]; then
+    echo "[*] Found builder container ID: $BUILDER_CONTAINER"
+    sudo -u "$ACTUAL_USER" sg docker -c "docker update \
+      --memory=512m \
+      --memory-swap=512m \
+      --cpus=1.0 \
+      --cpu-shares=512 \
+      $BUILDER_CONTAINER"
+    echo "[+] Resource limits applied to builder container."
+  else
+    echo "[!] Warning: Could not find builder container for resource limiting."
+    echo "    The builder will still work but without container-level resource limits."
+  fi
+  
+  echo "[+] Resource-limited Docker Buildx builder 'shared-builder' created successfully."
+}
+
+# Set up the builder
+setup_buildx_builder
 
 # Prompt user to start AuthBerry services.
 if prompt_yes_no "Would you like to start the AuthBerry services now?"; then

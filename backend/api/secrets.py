@@ -11,7 +11,7 @@ from backend.models.enums import SecretType
 from backend.extensions import db, socketio
 from backend.utils.encryption import encrypt_value, decrypt_value
 from backend.services.secret_service import SecretService
-from backend.models.folder import Folder, FolderPermission, FolderType
+from backend.models.folder import Folder, FolderPermission
 from backend.models.permission import UserSecretView
 from backend.models.tag import Tag
 from backend.services.ws_service import client_sessions, encrypt_for_client

@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt,
     verify_jwt_in_request
 )
-from flask_security import login_user, logout_user
+from flask_security import login_user
 from flask_security.utils import verify_password
 from functools import wraps
 from datetime import datetime

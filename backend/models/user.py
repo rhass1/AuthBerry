@@ -8,7 +8,6 @@ from backend.extensions import db
 from backend.models.enums import user_role_enum, UserRole
 from flask_login import UserMixin
 from flask_security import RoleMixin, SQLAlchemyUserDatastore
-from PIL import Image
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
 

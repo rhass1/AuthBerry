@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 
-from flask import current_app
 from backend.models.secret import Secret
 from backend.models.user import User
 from backend.extensions import db

@@ -1,14 +1,35 @@
 # AuthBerry Makefile
 # Provides shortcuts for building and running the application
 
-# Default values
+# Default values - NO FALLBACKS FOR CRITICAL SECURITY COMPONENTS
 TAG ?= latest
 REGISTRY ?=
 AUTH_BERRY_UID ?= $(shell id -u)
 AUTH_BERRY_GID ?= $(shell id -g)
-TSS_UID ?= $(shell id -u tss 2>/dev/null || echo 113)
-TSS_GID ?= $(shell getent group tss | cut -d: -f3 2>/dev/null || echo 113)
-TPM_DEVICES ?= /dev/tpmrm0
+
+# TSS UID/GID must be properly configured - NO DEFAULTS
+TSS_UID_CMD = $(shell id -u tss 2>/dev/null)
+TSS_GID_CMD = $(shell getent group tss | cut -d: -f3 2>/dev/null)
+
+# Validate TSS configuration exists
+ifeq ($(TSS_UID_CMD),)
+$(error CRITICAL ERROR: TSS user 'tss' not found. TPM Software Stack is not properly installed. Run initial setup first.)
+endif
+
+ifeq ($(TSS_GID_CMD),)
+$(error CRITICAL ERROR: TSS group 'tss' not found. TPM Software Stack is not properly installed. Run initial setup first.)
+endif
+
+# Only set TSS values if validation passed
+TSS_UID = $(TSS_UID_CMD)
+TSS_GID = $(TSS_GID_CMD)
+
+# TPM devices must be configured - NO DEFAULTS
+TPM_DEVICES_FROM_ENV = $(shell grep -oP '^TPM_DEVICES=\K.*' .env 2>/dev/null)
+ifeq ($(TPM_DEVICES_FROM_ENV),)
+$(error CRITICAL ERROR: TPM_DEVICES not found in .env file. Run initial setup first to configure TPM devices.)
+endif
+TPM_DEVICES = $(TPM_DEVICES_FROM_ENV)
 
 # Get values from .env file if they exist
 FLASK_PORT ?= $(shell grep -oP '^FLASK_PORT=\K.*' .env 2>/dev/null || echo 1337)
@@ -27,15 +48,41 @@ FLASK_DEBUG_PROD = 0
 FLASK_VOLUMES_PROD = ./file_uploads:/app/file_uploads
 NODE_ENV_PROD = production
 
-# Docker buildx setup
+# Docker buildx setup with resource limits
 .PHONY: buildx-setup
 buildx-setup:
 	@if ! docker buildx ls | grep -q "shared-builder"; then \
-		echo "Setting up Docker Buildx builder..."; \
-		docker buildx create --name shared-builder --use; \
+		echo "Setting up resource-limited Docker Buildx builder..."; \
+		sudo mkdir -p /etc/buildkit/sgl-buildkit; \
+		sudo cp ./docker/buildkitd.toml /etc/buildkit/sgl-buildkit/buildkitd.toml; \
+		sudo chown root:root /etc/buildkit/sgl-buildkit/buildkitd.toml; \
+		sudo chmod 644 /etc/buildkit/sgl-buildkit/buildkitd.toml; \
+		docker buildx create \
+			--name shared-builder \
+			--driver docker-container \
+			--driver-opt network=host \
+			--driver-opt image=moby/buildkit:latest \
+			--config /etc/buildkit/sgl-buildkit/buildkitd.toml \
+			--use; \
 		docker buildx inspect --bootstrap; \
+		echo "Waiting for builder container to stabilize..."; \
+		sleep 5; \
+		BUILDER_CONTAINER=$$(docker ps --filter "name=buildx_buildkit_shared-builder" --format "{{.ID}}"); \
+		if [ -n "$$BUILDER_CONTAINER" ]; then \
+			echo "Applying resource limits to builder container: $$BUILDER_CONTAINER"; \
+			docker update \
+				--memory=512m \
+				--memory-swap=512m \
+				--cpus=1.0 \
+				--cpu-shares=512 \
+				$$BUILDER_CONTAINER; \
+			echo "✅ Resource limits applied to builder container"; \
+		else \
+			echo "⚠️  Could not find builder container for resource limiting"; \
+		fi; \
 	else \
-		echo "Docker Buildx builder already exists"; \
+		echo "Docker Buildx builder 'shared-builder' already exists"; \
+		docker buildx use shared-builder; \
 	fi
 
 # Build development images
@@ -112,6 +159,17 @@ clean-all: clean
 	@echo "Final cleanup - removing all unused Docker resources..."
 	docker system prune -af --volumes
 
+# Clean up buildx builder
+.PHONY: clean-buildx
+clean-buildx:
+	@echo "Cleaning up Docker Buildx builder..."
+	@if docker buildx ls | grep -q "shared-builder"; then \
+		echo "Removing shared-builder..."; \
+		docker buildx rm shared-builder || true; \
+	fi
+	@echo "Removing buildkit configuration..."
+	@sudo rm -rf /etc/buildkit/sgl-buildkit 2>/dev/null || true
+
 # Clean up partial database initialization
 .PHONY: clean-db-init
 clean-db-init:
@@ -165,18 +223,26 @@ restore-db:
 help:
 	@echo "AuthBerry Makefile Help"
 	@echo "========================="
-	@echo "Commands:"
+	@echo "Build & Deploy Commands:"
 	@echo "  make build-dev         - Build development images"
 	@echo "  make build-prod        - Build production images"
 	@echo "  make deploy-dev        - Build and deploy development environment"
 	@echo "  make deploy-prod       - Build and deploy production environment"
-	@echo "  make clean             - Stop containers and remove networks"
-	@echo "  make clean-all         - Clean containers, networks, and images"
+	@echo ""
+	@echo "Database Commands:"
 	@echo "  make init-db           - Initialize database (run after first deployment)"
 	@echo "  make init-db-safe      - Initialize database with automatic cleanup on failure"
 	@echo "  make clean-db-init     - Clean up partial database initialization"
 	@echo "  make backup-db         - Create database backup with TPM credentials"
 	@echo "  make restore-db        - Restore database from backup (requires BACKUP_FILE=path)"
+	@echo ""
+	@echo "Docker & Buildx Commands:"
+	@echo "  make buildx-setup      - Set up resource-limited Docker Buildx builder"
+	@echo "  make clean-buildx      - Remove Docker Buildx builder and configuration"
+	@echo "  make clean             - Stop containers and remove networks"
+	@echo "  make clean-all         - Clean containers, networks, and images"
+	@echo ""
+	@echo "Monitoring Commands:"
 	@echo "  make logs              - Show container logs"
 	@echo ""
 	@echo "Optional parameters:"

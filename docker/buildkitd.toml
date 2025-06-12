@@ -1,0 +1,32 @@
+# /etc/buildkit/buildkitd.toml
+[worker.oci]
+  # Limit concurrent build steps across all projects
+  max-parallelism = 1
+  
+[worker.containerd]
+  max-parallelism = 1
+
+# Resource management for multi-project usage
+[worker.gc]
+  gc = true
+  # Keep 1GB for cache across all projects
+  gckeepstorage = "1GB"
+  # More aggressive cleanup for shared usage
+  gcpolicy = [
+    {keepDuration = "12h", filters = ["type==source.local"]},
+    {keepDuration = "48h", filters = ["type==exec.cachemount"]},
+    {all = true, keepDuration = "168h"}
+  ]
+
+# Registry optimizations for multiple projects
+[registry."docker.io"]
+  mirrors = []
+  
+# Network optimizations
+[worker.oci.runtime]
+  name = "runc"
+
+# Logging for debugging across projects
+[log]
+  level = "info"
+  format = "json"

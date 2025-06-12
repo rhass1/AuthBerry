@@ -665,6 +665,9 @@ def main():
     print("[+] AuthBerry Configuration Script")
     print("=========================")
     
+    print("\n[*] This script assumes hardware enablement is complete.")
+    print("    If you're seeing TPM-related errors, re-run initial_setup.sh first.")
+    
     # Get system information from .env - NO DEFAULTS, FAIL IF MISSING
     try:
         auth_berry_uid = int(env_vars['AUTH_BERRY_UID'])
@@ -673,6 +676,7 @@ def main():
         print(f"\n[-] CRITICAL ERROR: Missing or invalid user configuration in .env: {e}")
         print("    AUTH_BERRY_UID and AUTH_BERRY_GID must be properly set.")
         print("    This indicates the initial setup process failed.")
+        print("    Re-run: sudo bash initial_setup.sh")
         sys.exit(1)
     
     # TSS configuration is MANDATORY - no defaults allowed
@@ -688,7 +692,7 @@ def main():
         print("This indicates TPM 2.0 software stack is not installed.")
         print("")
         print("The initial setup process should have detected and configured this.")
-        print("Re-run the initial setup script to resolve this issue.")
+        print("Re-run: sudo bash initial_setup.sh")
         print("="*70)
         sys.exit(1)
     
@@ -701,7 +705,7 @@ def main():
         print("This indicates TPM 2.0 hardware was not detected during setup.")
         print("")
         print("The initial setup process should have detected TPM devices.")
-        print("Re-run the initial setup script to resolve this issue.")
+        print("Re-run: sudo bash initial_setup.sh")
         print("="*70)
         sys.exit(1)
     
@@ -713,8 +717,11 @@ def main():
     print(f"[+] TSS GID: {tss_gid}")
     print(f"[+] TPM Devices: {tmp_devices}")
     
-    # Verify all configured values actually work
-    print("\n[*] Validating system configuration...")
+    # VALIDATION PHASE: Verify all configured values actually work
+    print("\n" + "="*70)
+    print("🔍 VALIDATION PHASE: VERIFYING SYSTEM CONFIGURATION")
+    print("="*70)
+    print("Hardware enablement should be complete. Validating configuration...")
     
     # Verify TSS group exists and matches
     try:
@@ -724,11 +731,13 @@ def main():
             print(f"    .env file says TSS_GID={tss_gid}")
             print(f"    System says tss group GID={actual_tss_gid}")
             print("    This indicates system configuration changed since initial setup.")
+            print("    Re-run: sudo bash initial_setup.sh")
             sys.exit(1)
     except (subprocess.CalledProcessError, ValueError, IndexError):
         print("\n[-] CRITICAL ERROR: TSS group not found on system!")
         print("    TPM Software Stack is not properly installed.")
-        print("    Re-run initial setup to resolve this issue.")
+        print("    This indicates hardware enablement was not completed.")
+        print("    Re-run: sudo bash initial_setup.sh")
         sys.exit(1)
     
     # Verify TSS user exists and matches  
@@ -739,11 +748,13 @@ def main():
             print(f"    .env file says TSS_UID={tss_uid}")
             print(f"    System says tss user UID={actual_tss_uid}")
             print("    This indicates system configuration changed since initial setup.")
+            print("    Re-run: sudo bash initial_setup.sh")
             sys.exit(1)
     except (subprocess.CalledProcessError, ValueError):
         print("\n[-] CRITICAL ERROR: TSS user not found on system!")
         print("    TPM Software Stack is not properly installed.")
-        print("    Re-run initial setup to resolve this issue.")
+        print("    This indicates hardware enablement was not completed.")
+        print("    Re-run: sudo bash initial_setup.sh")
         sys.exit(1)
     
     # Verify TPM devices actually exist
@@ -756,71 +767,78 @@ def main():
     if missing_devices:
         print(f"\n[-] CRITICAL ERROR: TPM devices not found!")
         print(f"    Missing devices: {missing_devices}")
-        print("    This indicates TPM hardware configuration changed since setup.")
+        print("    This indicates hardware enablement was not completed properly.")
+        print("")
+        print("    Possible causes:")
+        print("    • Boot configuration changes were not applied")
+        print("    • System was not rebooted after boot config changes")
+        print("    • TPM hardware is not properly connected")
+        print("    • TPM hardware failed after initial detection")
+        print("")
+        print("    Re-run: sudo bash initial_setup.sh")
         sys.exit(1)
     
     print("[+] System configuration validation passed.")
     
-    # TPM 2.0 is MANDATORY - this is critical for security
-    if not tmp_devices:
-        print("\n" + "="*70)
-        print("🚨 CRITICAL ERROR: TPM 2.0 NOT AVAILABLE")
-        print("="*70)
-        print("TPM 2.0 is the security backbone of AuthBerry and is MANDATORY.")
-        print("The application CANNOT and WILL NOT function without it.")
+    # TPM FUNCTIONALITY TEST: This is where we fail hard if TPM doesn't work
+    print("\n[*] Testing TPM 2.0 functionality...")
+    
+    # Test basic TPM access
+    try:
+        # Try to access TPM devices with proper permissions
+        for device in tmp_devices:
+            device = device.strip()
+            if not os.access(device, os.R_OK | os.W_OK):
+                print(f"\n[-] CRITICAL ERROR: Cannot access TPM device {device}")
+                print("    Device exists but is not accessible.")
+                print("    This indicates permission or driver issues.")
+                print("")
+                print("    Check:")
+                print("    • User is in 'tss' group (may require logout/login)")
+                print("    • TPM device permissions are correct")
+                print("    • TPM drivers are loaded properly")
+                print("")
+                print("    Re-run: sudo bash initial_setup.sh")
+                sys.exit(1)
+        
+        print("[+] TPM device access test passed.")
+        
+    except Exception as e:
+        print(f"\n[-] CRITICAL ERROR: TPM access test failed: {e}")
+        print("    TPM hardware appears to be present but non-functional.")
+        print("    This indicates a hardware or driver problem.")
         print("")
-        print("TPM 2.0 provides:")
-        print("  • Hardware-backed secret storage")
-        print("  • Cryptographic key generation and protection")
-        print("  • Platform integrity verification")
-        print("  • Secure authentication mechanisms")
-        print("")
-        print("SETUP FAILED: No TPM devices detected.")
-        print("Please ensure TPM 2.0 is properly configured before running setup.")
-        print("="*70)
-        # Exit completely - no option to continue
+        print("    Re-run: sudo bash initial_setup.sh")
         sys.exit(1)
     
-    # Platform-specific boot configuration
+    # Platform-specific validation (only if needed)
     is_rpi = is_raspberry_pi()
     
     if is_rpi:
-        print("\n[+] Raspberry Pi detected - checking boot configuration...")
-        if not check_and_update_rpi_boot_config():
-            print("\n" + "="*70)
-            print("⚠️  SETUP INCOMPLETE")
-            print("="*70)
-            print("Boot configuration changes are required for TPM 2.0 functionality.")
-            print("Please complete the reboot process and re-run setup.")
-            print("="*70)
-            # Exit when reboot is needed or TPM config failed
+        print("\n[+] Raspberry Pi detected - verifying boot configuration is active...")
+        # Just verify the configuration is working, don't try to change it
+        if not os.path.exists('/dev/tpmrm0') and not os.path.exists('/dev/tpm0'):
+            print("\n[-] CRITICAL ERROR: RPi boot configuration not effective!")
+            print("    Boot configuration changes may not have been applied or")
+            print("    system may not have been rebooted after changes.")
+            print("")
+            print("    Re-run: sudo bash initial_setup.sh")
             sys.exit(1)
+        print("[+] Raspberry Pi boot configuration is active and working.")
     else:
-        # Assume x86_64 system
-        print("\n[+] x86_64 system detected - checking cgroup configuration...")
-        check_x86_64_cgroups()
-        
-        # For x86_64, still verify TPM is working
-        # Check if TPM devices are actually functional
-        print("\n[*] Verifying TPM 2.0 functionality on x86_64 system...")
-        tmp_devices_available = any(os.path.exists(dev) for dev in ['/dev/tpmrm0', '/dev/tpm0', '/dev/tpmrm1', '/dev/tpm1'])
-        
-        if not tmp_devices_available:
-            print("\n" + "="*70)
-            print("🚨 CRITICAL ERROR: TPM 2.0 NOT FUNCTIONAL")
-            print("="*70)
-            print("TPM 2.0 hardware is MANDATORY for AuthBerry but is not accessible.")
+        print("\n[+] x86_64 system detected - TPM should be available via firmware...")
+        # For x86_64, just verify we have working TPM devices
+        if not any(os.path.exists(dev) for dev in ['/dev/tpmrm0', '/dev/tpm0']):
+            print("\n[-] CRITICAL ERROR: x86_64 TPM not accessible!")
+            print("    This usually indicates:")
+            print("    • TPM is disabled in BIOS/UEFI firmware")
+            print("    • TPM hardware is not present")
+            print("    • TPM driver issues")
             print("")
-            print("On x86_64 systems, this usually indicates:")
-            print("  • TPM is disabled in BIOS/UEFI firmware")
-            print("  • TPM hardware is not present")
-            print("  • TPM driver issues")
-            print("  • Insufficient permissions (tss group)")
-            print("")
-            print("Please enable TPM 2.0 in your system firmware and ensure")
-            print("the 'tpm2-tools' package is properly installed.")
-            print("="*70)
+            print("    Enable TPM 2.0 in your system firmware and")
+            print("    re-run: sudo bash initial_setup.sh")
             sys.exit(1)
+        print("[+] x86_64 TPM hardware is accessible.")
     
     # Check Docker Buildx configuration
     check_buildx_setup()
@@ -843,6 +861,14 @@ def main():
         print("")
         print("This is a security-critical failure. The application")
         print("CANNOT operate without properly sealed secrets.")
+        print("")
+        print("Possible causes:")
+        print("• TPM hardware malfunction")
+        print("• TPM driver issues")
+        print("• Insufficient permissions")
+        print("• TPM already owned by another application")
+        print("")
+        print("Re-run: sudo bash initial_setup.sh")
         print("="*70)
         sys.exit(1)
 

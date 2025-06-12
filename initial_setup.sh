@@ -184,6 +184,76 @@ check_container_ready() {
   return 1
 }
 
+# Waits for database to be ready for connections and user authentication
+check_database_ready() {
+  local max_attempts="${1:-30}"
+  local attempt=0
+
+  echo "[*] Waiting for database to be ready for connections..."
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    # Use the Flask container's database test command
+    if docker exec auth_berry_flask flask test-database >/dev/null 2>&1; then
+      echo "[+] Database is ready and accessible."
+      return 0
+    fi
+    
+    attempt=$((attempt + 1))
+    echo "  [*] Still waiting for database readiness (attempt $attempt/$max_attempts)..."
+    sleep 3
+  done
+
+  echo "[-] Timed out waiting for database to become ready."
+  return 1
+}
+
+# Enhanced waiting with both container and database readiness
+wait_for_services() {
+  local flask_container="auth_berry_flask"
+  local mariadb_container="auth_berry_mariadb"
+  
+  echo "[*] Waiting for all services to be ready..."
+  
+  # First wait for MariaDB container health check
+  echo "[*] Checking MariaDB container health..."
+  local attempt=0
+  local max_attempts=30
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    if docker container inspect "$mariadb_container" &>/dev/null; then
+      local health_status
+      health_status=$(docker container inspect -f '{{.State.Health.Status}}' "$mariadb_container" 2>/dev/null || echo "none")
+      
+      if [[ "$health_status" == "healthy" ]]; then
+        echo "[+] MariaDB container is healthy."
+        break
+      fi
+    fi
+    
+    attempt=$((attempt + 1))
+    echo "  [*] MariaDB not healthy yet (attempt $attempt/$max_attempts)..."
+    sleep 3
+  done
+  
+  if [ "$attempt" -eq "$max_attempts" ]; then
+    echo "[-] MariaDB container did not become healthy in time."
+    return 1
+  fi
+  
+  # Then wait for Flask container to be ready
+  if ! check_container_ready "$flask_container"; then
+    echo "[-] Flask container failed to become ready."
+    return 1
+  fi
+  
+  # Finally wait for database authentication to be ready
+  if ! check_database_ready 20; then
+    echo "[-] Database authentication not ready."
+    return 1
+  fi
+  
+  echo "[+] All services are ready!"
+  return 0
+}
+
 
 # Get the primary IPv4 address of the system so we can tell the user where to access the application.
 get_primary_ipv4() {
@@ -444,25 +514,28 @@ if prompt_yes_no "Would you like to start the AuthBerry services now?"; then
     fi
   fi
 
-  # Wait for the Flask container (application backend) to be ready.
-  FLASK_CONTAINER_NAME="auth_berry_flask"
-  if ! check_container_ready "$FLASK_CONTAINER_NAME"; then
-    echo "[-] Flask container '$FLASK_CONTAINER_NAME' did not become ready."
+  # Wait for all services to be ready with enhanced checking
+  if ! wait_for_services; then
+    echo "[-] Services did not become ready in time."
     if ! prompt_yes_no "Database initialization might fail. Continue with database initialization anyway?"; then
       echo "[+] Skipping database initialization. You can initialize it later using:"
-      echo "    make init-db"
+      echo "    make clean-db-init  # Clean any partial state"
+      echo "    make init-db        # Initialize database"
       exit 0
     fi
   fi
 
-  # Initialize the database
+  # Initialize the database with automatic cleanup on failure
   echo "[+] Initializing application database..."
-  if sudo -u "$ACTUAL_USER" sg docker -c "cd \"$SCRIPT_DIR\" && make init-db"; then
+  if sudo -u "$ACTUAL_USER" sg docker -c "cd \"$SCRIPT_DIR\" && make init-db-safe"; then
     echo "[+] Database initialized successfully."
   else
     echo "[-] Error: Failed to initialize the database."
-    echo "[!] You will need to run the initialization manually later using:"
-    echo "    make init-db"
+    echo "[!] The system has automatically cleaned up partial initialization state."
+    echo "[!] You can retry initialization manually using:"
+    echo "    make init-db        # Try database initialization"
+    echo "    make clean-db-init  # Clean partial state if needed"
+    echo "    make logs           # Check container logs for issues"
     exit 1
   fi
 
@@ -490,7 +563,12 @@ else
   echo "[+] AuthBerry services not started. To run manually:"
   echo "    1. Start containers for development: make deploy-dev"
   echo "    1. Start containers for production: make deploy-prod"
-  echo "    2. Initialize database (if first time): make init-db"
+  echo "    2. Initialize database (if first time): make init-db-safe"
+  echo ""
+  echo "[i] Database troubleshooting commands:"
+  echo "    make clean-db-init  # Clean partial initialization state"
+  echo "    make init-db        # Initialize database (standard)"
+  echo "    make init-db-safe   # Initialize with automatic cleanup on failure"
   echo ""
 fi
 

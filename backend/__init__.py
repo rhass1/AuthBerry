@@ -10,6 +10,7 @@ import logging
 from datetime import timedelta
 import sqlalchemy
 import click
+import sys
 
 # Import extensions
 from backend.extensions import db, migrate, login_manager, jwt, principal, cors, socketio, security
@@ -57,8 +58,19 @@ def create_app(config_name=None):
     app.config['JWT_QUERY_STRING_NAME'] = 'token'
     app.config['JWT_QUERY_STRING_LOCATIONS'] = ['query_string']
 
-    # Initialize extensions
+    # Initialize extensions with database retry logic
     db.init_app(app)
+    
+    # Wait for database to be ready before proceeding
+    with app.app_context():
+        from backend.utils.database import wait_for_database
+        logger = logging.getLogger(__name__)
+        logger.info("Waiting for database to be ready...")
+        
+        if not wait_for_database():
+            logger.error("Database connection failed. Application cannot start.")
+            sys.exit(1)
+            
     migrate.init_app(app, db)
     login_manager.init_app(app)
     jwt.init_app(app)
@@ -114,6 +126,34 @@ def create_app(config_name=None):
     app.register_blueprint(ws_bp)
 
     # Register CLI commands
+    @app.cli.command("test-database")
+    def test_database():
+        """Test database connectivity and readiness."""
+        from backend.utils.database import test_database_readiness
+        click.echo("Testing database connection...")
+        
+        is_ready, error_msg = test_database_readiness()
+        
+        if is_ready:
+            click.echo("✅ Database is ready and accessible")
+        else:
+            click.echo(f"❌ Database connection failed: {error_msg}")
+            sys.exit(1)
+
+    @app.cli.command("wait-for-database")
+    @click.option('--max-retries', default=30, help='Maximum number of retry attempts')
+    @click.option('--timeout', default=60, help='Total timeout in seconds')
+    def wait_for_db_cli(max_retries, timeout):
+        """Wait for database to become ready."""
+        from backend.utils.database import wait_for_database
+        click.echo(f"Waiting for database (max {max_retries} retries, {timeout}s timeout)...")
+        
+        if wait_for_database(max_retries=max_retries):
+            click.echo("✅ Database is ready")
+        else:
+            click.echo("❌ Database connection failed")
+            sys.exit(1)
+
     @app.cli.command("cleanup-database")
     def cleanup_database():
         """Clear all user and application data from the database while preserving structure and system settings."""

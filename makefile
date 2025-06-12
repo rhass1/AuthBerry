@@ -112,11 +112,29 @@ clean-all: clean
 	@echo "Final cleanup - removing all unused Docker resources..."
 	docker system prune -af --volumes
 
-# Initialize database
+# Clean up partial database initialization
+.PHONY: clean-db-init
+clean-db-init:
+	@echo "Cleaning up partial database initialization..."
+	@docker exec auth_berry_flask bash -c "rm -rf /app/migrations" 2>/dev/null || true
+	@echo "Database initialization cleanup completed"
+
+# Initialize database with retry logic
 .PHONY: init-db
 init-db:
 	@echo "Initializing database..."
 	docker exec -it auth_berry_flask bash -c "flask db init && flask db migrate -m 'Initial database setup.' && flask db upgrade"
+
+# Initialize database with cleanup on failure
+.PHONY: init-db-safe
+init-db-safe:
+	@echo "Safely initializing database..."
+	@if ! $(MAKE) init-db; then \
+		echo "Database initialization failed, cleaning up..."; \
+		$(MAKE) clean-db-init; \
+		echo "Retry with: make init-db"; \
+		exit 1; \
+	fi
 
 # Show logs
 .PHONY: logs
@@ -155,6 +173,8 @@ help:
 	@echo "  make clean             - Stop containers and remove networks"
 	@echo "  make clean-all         - Clean containers, networks, and images"
 	@echo "  make init-db           - Initialize database (run after first deployment)"
+	@echo "  make init-db-safe      - Initialize database with automatic cleanup on failure"
+	@echo "  make clean-db-init     - Clean up partial database initialization"
 	@echo "  make backup-db         - Create database backup with TPM credentials"
 	@echo "  make restore-db        - Restore database from backup (requires BACKUP_FILE=path)"
 	@echo "  make logs              - Show container logs"
